@@ -34,7 +34,6 @@ coverage/
 dist
 dist-ssr
 dist/
-index.html
 lerna-debug.log*
 logs
 node_modules
