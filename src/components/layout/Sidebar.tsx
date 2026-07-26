@@ -4,7 +4,6 @@ import {
   Users,
   Kanban,
   CreditCard,
-  Workflow,
   Settings,
   Menu,
   X,
@@ -16,7 +15,6 @@ const navItems = [
   { to: "/patients", label: "Patients", icon: Users },
   { to: "/pipeline", label: "Pipeline", icon: Kanban },
   { to: "/payments", label: "Payments", icon: CreditCard },
-  { to: "/diagrams", label: "Diagrams", icon: Workflow },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
