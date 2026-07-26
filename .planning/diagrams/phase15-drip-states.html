@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phase 15 Drip States — Hüseyin Ajuz CRM</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper: #FAF6F1; --ink: #2D2A26; --muted: #7A756E;
+      --font-sans: 'Inter', system-ui, sans-serif;
+      --font-serif: 'DM Serif Display', Georgia, serif;
+      --font-mono: 'Geist Mono', ui-monospace, monospace;
+    }
+    body { font-family: var(--font-sans); background: var(--paper); color: var(--ink);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1200px; width: 100%; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 500;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400; letter-spacing: -0.02em; line-height: 1.15; }
+    .subtitle { color: var(--muted); font-size: 0.9rem; margin: 0.5rem 0 1.5rem; }
+    svg { width: 100%; min-width: 900px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">State Machine · Hüseyin Ajuz CRM</p>
+    <h1>Phase 15 — the landing-page drip, as designed</h1>
+    <p class="subtitle">Blocked on three answers from Hüseyin: the two below, plus how email copy gets approved.</p>
+
+    <svg viewBox="0 0 1000 448" xmlns="http://www.w3.org/2000/svg"
+         role="img" aria-labelledby="dd-title dd-desc" data-dd-type="state">
+      <title id="dd-title">Planned drip email sequence state machine</title>
+      <desc id="dd-desc">A captured lead advances through day 3, 7, 11 and 20 emails to completion; any lifecycle transition exits the drip into a stopped state.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#7A756E"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2A9D8F"/></marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#E76F51"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#FAF6F1"/>
+
+      <!-- callout 1: accent, top-right → Day 20 -->
+      <text x="952" y="64" fill="#2A9D8F" font-size="14" font-style="italic" font-family="'DM Serif Display', Georgia, serif" text-anchor="end">open: discount amount &amp; code</text>
+      <text x="952" y="84" fill="#2A9D8F" font-size="14" font-style="italic" font-family="'DM Serif Display', Georgia, serif" text-anchor="end">for the day-20 offer</text>
+      <path d="M 872 92 Q 840 112 798 134" fill="none" stroke="rgba(42,157,143,0.50)" stroke-width="1" stroke-dasharray="4,3"/>
+      <circle cx="796" cy="138" r="2" fill="#2A9D8F"/>
+
+      <!-- callout 2: neutral, bottom-left → Lead captured -->
+      <text x="48" y="384" fill="#2D2A26" font-size="14" font-style="italic" font-family="'DM Serif Display', Georgia, serif">open: do ManyChat leads enter the drip,</text>
+      <text x="48" y="404" fill="#2D2A26" font-size="14" font-style="italic" font-family="'DM Serif Display', Georgia, serif">or landing-form leads only?</text>
+      <path d="M 152 372 Q 148 280 164 200" fill="none" stroke="rgba(45,42,38,0.40)" stroke-width="1" stroke-dasharray="4,3"/>
+      <circle cx="164" cy="196" r="2" fill="#2D2A26"/>
+
+      <!-- transitions (before boxes) -->
+      <line x1="70" y1="168" x2="96" y2="168" stroke="#7A756E" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+      <line x1="232" y1="168" x2="272" y2="168" stroke="#7A756E" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="238" y="148" width="28" height="12" rx="2" fill="#FAF6F1"/>
+      <text x="252" y="157" fill="#A8A29E" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">+3D</text>
+
+      <line x1="384" y1="168" x2="424" y2="168" stroke="#7A756E" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="390" y="148" width="28" height="12" rx="2" fill="#FAF6F1"/>
+      <text x="404" y="157" fill="#A8A29E" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">+4D</text>
+
+      <line x1="536" y1="168" x2="576" y2="168" stroke="#7A756E" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="542" y="148" width="28" height="12" rx="2" fill="#FAF6F1"/>
+      <text x="556" y="157" fill="#A8A29E" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">+4D</text>
+
+      <line x1="688" y1="168" x2="728" y2="168" stroke="#7A756E" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="694" y="148" width="28" height="12" rx="2" fill="#FAF6F1"/>
+      <text x="708" y="157" fill="#A8A29E" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">+9D</text>
+
+      <line x1="864" y1="168" x2="900" y2="168" stroke="#7A756E" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="866" y="148" width="32" height="12" rx="2" fill="#FAF6F1"/>
+      <text x="882" y="157" fill="#A8A29E" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">DONE</text>
+
+      <!-- any-state exit (dashed) -->
+      <line x1="360" y1="328" x2="424" y2="328" stroke="#7A756E" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <text x="352" y="331" fill="#7A756E" font-size="8" font-family="'Geist Mono', monospace" text-anchor="end" letter-spacing="0.06em">* ANY STATE</text>
+      <rect x="364" y="308" width="48" height="12" rx="2" fill="#FAF6F1"/>
+      <text x="388" y="317" fill="#A8A29E" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">DRIP-04</text>
+
+      <!-- start dot -->
+      <circle cx="64" cy="168" r="6" fill="#2D2A26"/>
+
+      <!-- states -->
+      <rect x="96" y="144" width="136" height="48" rx="8" fill="#FAF6F1"/>
+      <rect x="96" y="144" width="136" height="48" rx="8" fill="#FFFDF9" stroke="#2D2A26" stroke-width="1"/>
+      <text x="164" y="164" fill="#2D2A26" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Lead captured</text>
+      <text x="164" y="180" fill="#7A756E" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">landing form → crm</text>
+
+      <rect x="272" y="144" width="112" height="48" rx="8" fill="#FAF6F1"/>
+      <rect x="272" y="144" width="112" height="48" rx="8" fill="#FFFDF9" stroke="#2D2A26" stroke-width="1"/>
+      <text x="328" y="164" fill="#2D2A26" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Day 3 email</text>
+      <text x="328" y="180" fill="#7A756E" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">drip_day3</text>
+
+      <rect x="424" y="144" width="112" height="48" rx="8" fill="#FAF6F1"/>
+      <rect x="424" y="144" width="112" height="48" rx="8" fill="#FFFDF9" stroke="#2D2A26" stroke-width="1"/>
+      <text x="480" y="164" fill="#2D2A26" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Day 7 email</text>
+      <text x="480" y="180" fill="#7A756E" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">drip_day7</text>
+
+      <rect x="576" y="144" width="112" height="48" rx="8" fill="#FAF6F1"/>
+      <rect x="576" y="144" width="112" height="48" rx="8" fill="#FFFDF9" stroke="#2D2A26" stroke-width="1"/>
+      <text x="632" y="164" fill="#2D2A26" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Day 11 email</text>
+      <text x="632" y="180" fill="#7A756E" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">drip_day11</text>
+
+      <rect x="728" y="144" width="136" height="48" rx="8" fill="#FAF6F1"/>
+      <rect x="728" y="144" width="136" height="48" rx="8" fill="rgba(42,157,143,0.08)" stroke="#2A9D8F" stroke-width="1.2"/>
+      <text x="796" y="164" fill="#2D2A26" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Day 20 offer</text>
+      <text x="796" y="180" fill="#7A756E" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">discount · undecided</text>
+
+      <!-- end dot -->
+      <circle cx="912" cy="168" r="8" fill="none" stroke="#2D2A26" stroke-width="1.2"/>
+      <circle cx="912" cy="168" r="5" fill="#2D2A26"/>
+
+      <!-- stopped state -->
+      <rect x="424" y="304" width="152" height="48" rx="8" fill="#FAF6F1"/>
+      <rect x="424" y="304" width="152" height="48" rx="8" fill="rgba(45,42,38,0.05)" stroke="#7A756E" stroke-width="1"/>
+      <text x="500" y="324" fill="#2D2A26" font-size="12" font-weight="600" font-family="'Inter', sans-serif" text-anchor="middle">Stopped</text>
+      <text x="500" y="340" fill="#7A756E" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">lifecycle_state changed</text>
+
+      <!-- legend -->
+      <line x1="30" y1="416" x2="970" y2="416" stroke="rgba(45,42,38,0.10)" stroke-width="0.8"/>
+      <text x="30" y="434" fill="#7A756E" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+      <rect x="110" y="426" width="14" height="10" rx="3" fill="rgba(42,157,143,0.08)" stroke="#2A9D8F" stroke-width="1.2"/>
+      <text x="132" y="434" fill="#7A756E" font-size="8" font-family="'Geist Mono', monospace">open decision</text>
+      <line x1="250" y1="431" x2="282" y2="431" stroke="#7A756E" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="290" y="434" fill="#7A756E" font-size="8" font-family="'Geist Mono', monospace">exit rule (drip-04)</text>
+      <circle cx="430" cy="431" r="5" fill="#2D2A26"/>
+      <text x="442" y="434" fill="#7A756E" font-size="8" font-family="'Geist Mono', monospace">start / end</text>
+    </svg>
+  </div>
+<!-- dd:interactive:begin -->
+<script>window.__DD_INTERACTIVE__ = {"hover": true, "animate": true, "accent": "#2A9D8F"};</script>
+<script>
+/*!
+ * diagram-design · interactive runtime layer  v1.1
+ * ---------------------------------------------------------------------------
+ * Adds four features to a hand-authored diagram-design SVG, with ZERO changes
+ * to the authoring contract:
+ *
+ *   HOVER   (ported from `blueprint`)
+ *     Hover a node -> it and its incident edges stay lit, everything else dims.
+ *     Click to pin (multi-select). Escape clears. Pinned wins over hover.
+ *
+ *   ANIMATE (ported from `glowmotion`)
+ *     Glowing comet dots ride each connector, with two trailing dots.
+ *     Staggered per-edge loop. Comets dim with their edge during focus.
+ *
+ *   TOGGLE  Animation on/off button (SMIL is paused when off, so idle CPU = 0).
+ *   ZOOM    -/+/reset buttons, ctrl/cmd + wheel (zooms to cursor), drag to pan,
+ *           keyboard +/-/0. Dragging never fires a pin-click.
+ *
+ * Topology is derived GEOMETRICALLY at runtime -- no ids, no data-attributes,
+ * no journey specs to hand-maintain. Existing diagrams gain everything.
+ *
+ * Opt out per file before loading:
+ *   window.__DD_INTERACTIVE__ = { animate:false, hover:false, zoom:false }
+ */
+(function () {
+  'use strict';
+
+  var CFG        = window.__DD_INTERACTIVE__ || {};
+  var WANT_HOVER = CFG.hover   !== false;
+  var WANT_ANIM  = CFG.animate !== false;
+  var WANT_ZOOM  = CFG.zoom    !== false;
+
+  /* -- tunables ----------------------------------------------------------- */
+  var NODE_RX      = [5, 9];
+  var LINK_TOL     = 14;     // endpoint->node hit tolerance, user units
+  var LABEL_TOL    = 26;     // text->edge association distance, user units
+  var DIM_EDGE     = 0.10;
+  var DIM_NODE     = 0.24;
+  var ACTIVE_BOOST = 1.5;
+  var DOT_SPEED    = 105.0;  // px/s  (glowmotion ships 150; calmer here)
+  var DOT_DUR_MIN  = 0.85;
+  var DOT_DUR_MAX  = 5.5;
+  var STAGGER      = 0.45;
+  // head + 2 trailing dots: [radius, opacity, gap BEHIND the head in px].
+  // The gap is a distance, so the comet keeps its shape at any DOT_SPEED.
+  var TRAIL        = [[3.5, 1, 0], [2.4, 0.5, 13.5], [1.7, 0.28, 27]];
+  var MAX_ANIM     = 40;     // perf guard
+  var Z_MIN = 0.4, Z_MAX = 5, Z_STEP = 0.25;
+
+  /* ======================================================================= */
+  /* boot: DOM -> fonts -> visible                                           */
+  /* ======================================================================= */
+  function ready(fn) {
+    var start = function () {
+      var f = (document.fonts && document.fonts.ready)
+        ? document.fonts.ready : Promise.resolve();
+      f.then(function () { whenVisible(fn); }, function () { whenVisible(fn); });
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', start);
+    } else { start(); }
+  }
+
+  function whenVisible(fn) {
+    var svg = document.querySelector('svg');
+    if (!svg) return;
+    if (svg.getBoundingClientRect().width > 0) return fn(svg);
+    if (typeof IntersectionObserver === 'undefined') return fn(svg);
+    var io = new IntersectionObserver(function (es) {
+      if (es.some(function (e) { return e.isIntersecting; })) {
+        io.disconnect(); fn(svg);
+      }
+    });
+    io.observe(svg);
+  }
+
+  /* ======================================================================= */
+  /* geometry (screen space, so ancestor transforms are handled uniformly)   */
+  /* ======================================================================= */
+  function screenRect(el) {
+    var r = el.getBoundingClientRect();
+    return { x: r.left, y: r.top, w: r.width, h: r.height,
+             cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
+  }
+  function ptAt(geo, len) {
+    var p = geo.getPointAtLength(len), m = geo.getScreenCTM();
+    if (!m) return null;
+    var sp = geo.ownerSVGElement.createSVGPoint();
+    sp.x = p.x; sp.y = p.y;
+    return sp.matrixTransform(m);
+  }
+  function userScale(svg) {
+    var m = svg.getScreenCTM();
+    return m ? Math.sqrt(Math.abs(m.a * m.d - m.b * m.c)) || 1 : 1;
+  }
+  function insideRect(pt, r, tol) {
+    return pt.x >= r.x - tol && pt.x <= r.x + r.w + tol &&
+           pt.y >= r.y - tol && pt.y <= r.y + r.h + tol;
+  }
+  function distToRect(pt, r) {
+    var dx = Math.max(r.x - pt.x, 0, pt.x - (r.x + r.w));
+    var dy = Math.max(r.y - pt.y, 0, pt.y - (r.y + r.h));
+    return Math.hypot(dx, dy);
+  }
+
+  /* ======================================================================= */
+  /* 1. nodes                                                                */
+  /* ======================================================================= */
+  function findNodes(svg) {
+    var cand = Array.prototype.slice.call(svg.querySelectorAll('rect'))
+      .filter(function (r) {
+        var rx = parseFloat(r.getAttribute('rx'));
+        if (!(rx >= NODE_RX[0] && rx <= NODE_RX[1])) return false;
+        var b = screenRect(r);
+        return b.w >= 8 && b.h >= 8;          // drops legend swatches
+      });
+
+    // node boxes are TWO stacked rects with identical geometry -> dedupe
+    var byKey = {};
+    cand.forEach(function (r) {
+      var b = screenRect(r);
+      var k = [Math.round(b.x), Math.round(b.y),
+               Math.round(b.w), Math.round(b.h)].join(':');
+      (byKey[k] = byKey[k] || { box: b, els: [] }).els.push(r);
+    });
+    var groups = Object.keys(byKey).map(function (k) { return byKey[k]; });
+
+    // zones/containers share rx=8 with nodes; they enclose other candidates
+    return groups.filter(function (g) {
+      return !groups.some(function (o) {
+        return o !== g &&
+          o.box.x > g.box.x - 2 && o.box.y > g.box.y - 2 &&
+          o.box.x + o.box.w < g.box.x + g.box.w + 2 &&
+          o.box.y + o.box.h < g.box.y + g.box.h + 2;
+      });
+    }).map(function (g, i) {
+      return { i: i, box: g.box, els: g.els.slice(), texts: [] };
+    });
+  }
+
+  /* ======================================================================= */
+  /* 2. connectors                                                           */
+  /* ======================================================================= */
+  function findEdges(svg, nodes, tol) {
+    var out = [];
+    Array.prototype.slice.call(
+      svg.querySelectorAll('path[marker-end], line[marker-end]')
+    ).forEach(function (g) {
+      var len = 0;
+      try { len = g.getTotalLength(); } catch (e) { return; }
+      if (!len || !isFinite(len) || len < 2) return;
+      var a = ptAt(g, 0), b = ptAt(g, len);
+      if (!a || !b) return;
+      var na = nearestNode(a, nodes, tol), nb = nearestNode(b, nodes, tol);
+      // self-cleaning: legend arrows / callout leaders never resolve to two
+      // distinct real nodes, so they drop out here.
+      if (na == null || nb == null || na === nb) return;
+      out.push({ el: g, a: na, b: nb, len: len, texts: [], dots: [] });
+    });
+    return out;
+  }
+  function nearestNode(pt, nodes, tol) {
+    var best = null, bestD = Infinity;
+    nodes.forEach(function (n) {
+      if (!insideRect(pt, n.box, tol)) return;
+      var d = distToRect(pt, n.box);
+      if (d < bestD) { bestD = d; best = n.i; }   // tie-break: nearest
+    });
+    return best;
+  }
+
+  /* ======================================================================= */
+  /* 3. text association                                                     */
+  /* ======================================================================= */
+  function assignText(svg, nodes, edges, tol) {
+    var small = Array.prototype.slice.call(svg.querySelectorAll('rect'))
+      .filter(function (r) {
+        var rx = parseFloat(r.getAttribute('rx'));
+        return !(rx >= NODE_RX[0] && rx <= NODE_RX[1]);
+      });
+
+    Array.prototype.slice.call(svg.querySelectorAll('text')).forEach(function (t) {
+      var b;
+      try { b = screenRect(t); } catch (e) { return; }
+      var c = { x: b.cx, y: b.cy };
+
+      // (a) centre-point inside a node (not full containment, which would
+      //     absorb captions that merely overlap)
+      var owner = null;
+      nodes.forEach(function (n) { if (insideRect(c, n.box, 0)) owner = n; });
+      if (owner) { owner.texts.push(t); attachMask(owner, b, small); return; }
+
+      // (b) nearest connector within tolerance -> edge label
+      var best = null, bestD = tol.label;
+      edges.forEach(function (e) {
+        var d = distPointToGeo(c, e.el);
+        if (d < bestD) { bestD = d; best = e; }
+      });
+      if (best) { best.texts.push(t); attachMask(best, b, small); }
+      // (c) unassigned (title, zone labels, legend, callouts) -> never dimmed
+    });
+  }
+  function attachMask(target, tb, rects) {
+    rects.forEach(function (r) {
+      var rb = screenRect(r);
+      if (Math.abs(rb.cx - tb.cx) < 12 && Math.abs(rb.cy - tb.cy) < 12 &&
+          rb.w >= tb.w - 6 && rb.h < 40) target.texts.push(r);
+    });
+  }
+  function distPointToGeo(pt, geo) {
+    var len = 0;
+    try { len = geo.getTotalLength(); } catch (e) { return Infinity; }
+    var best = Infinity, steps = Math.min(60, Math.max(8, len / 6));
+    for (var i = 0; i <= steps; i++) {
+      var p = ptAt(geo, len * (i / steps));
+      if (p) { var d = Math.hypot(p.x - pt.x, p.y - pt.y); if (d < best) best = d; }
+    }
+    return best;
+  }
+
+  /* ======================================================================= */
+  /* 4. animation  (runs BEFORE hover so comets join their edge's dim group) */
+  /* ======================================================================= */
+  function pathData(g) {
+    if (g.tagName.toLowerCase() === 'path') return g.getAttribute('d');
+    return 'M ' + g.getAttribute('x1') + ',' + g.getAttribute('y1') +
+           ' L ' + g.getAttribute('x2') + ',' + g.getAttribute('y2');
+  }
+
+  function wireAnimation(svg, edges, accent) {
+    var ns = 'http://www.w3.org/2000/svg';
+    var defs = svg.querySelector('defs');
+    if (!defs) {
+      defs = document.createElementNS(ns, 'defs');
+      svg.insertBefore(defs, svg.firstChild);
+    }
+    if (!svg.querySelector('#dd-glow')) {
+      var f = document.createElementNS(ns, 'filter');
+      f.setAttribute('id', 'dd-glow');
+      f.setAttribute('x', '-70%'); f.setAttribute('y', '-70%');
+      f.setAttribute('width', '240%'); f.setAttribute('height', '240%');
+      f.innerHTML = '<feGaussianBlur stdDeviation="2.2" result="b"/>' +
+        '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>';
+      defs.appendChild(f);
+    }
+
+    var n = 0;
+    edges.slice(0, MAX_ANIM).forEach(function (e, idx) {
+      var d = pathData(e.el);
+      if (!d) return;
+      var dur = Math.min(DOT_DUR_MAX, Math.max(DOT_DUR_MIN, e.len / DOT_SPEED));
+      var delay = idx * STAGGER;
+
+      var frag = document.createDocumentFragment();
+      TRAIL.forEach(function (s) {
+        var c = document.createElementNS(ns, 'circle');
+        c.setAttribute('r', s[0]);
+        c.setAttribute('fill', accent);
+        c.setAttribute('opacity', s[1]);
+        c.setAttribute('class', 'dd-dot');
+        if (s[0] > 3) c.setAttribute('filter', 'url(#dd-glow)');
+        var m = document.createElementNS(ns, 'animateMotion');
+        m.setAttribute('dur', dur.toFixed(2) + 's');
+        m.setAttribute('begin', (delay + s[2] / DOT_SPEED).toFixed(2) + 's');
+        m.setAttribute('repeatCount', 'indefinite');
+        m.setAttribute('path', d);
+        c.appendChild(m);
+        frag.appendChild(c);
+        e.dots.push(c);
+      });
+      // Z-ORDER: insert into the connector's OWN parent, right after it. SVG
+      // has no z-index -- appending to the end of <svg> would paint comets over
+      // the label masks and node boxes, breaking the line-gap illusion.
+      e.el.parentNode.insertBefore(frag, e.el.nextSibling);
+      n++;
+    });
+    return n;
+  }
+
+  /* ======================================================================= */
+  /* 5. hover / pin focus                                                    */
+  /* ======================================================================= */
+  function wireHover(svg, nodes, edges, gate) {
+    var adj = nodes.map(function () { return new Set(); });
+    edges.forEach(function (e) { adj[e.a].add(e.b); adj[e.b].add(e.a); });
+
+    nodes.forEach(function (n) {
+      n.all = n.els.concat(n.texts);
+      n.all.forEach(function (el) { el.classList.add('dd-t'); });
+      n.els.forEach(function (el) { el.style.cursor = 'pointer'; });
+    });
+    edges.forEach(function (e) {
+      // comets included -> they dim with their edge
+      e.all = [e.el].concat(e.texts, e.dots);
+      e.all.forEach(function (el) { el.classList.add('dd-t'); });
+      e.base = parseFloat(getComputedStyle(e.el).strokeWidth) || 1;
+    });
+
+    var hoverId = null, pinned = new Set();
+    function dim(els, on, amt) {
+      els.forEach(function (el) { el.style.opacity = on ? amt : ''; });
+    }
+    function apply() {
+      var eff = pinned.size ? pinned
+              : (hoverId !== null ? new Set([hoverId]) : null);
+      if (!eff) {
+        nodes.forEach(function (n) { dim(n.all, false); });
+        edges.forEach(function (e) { dim(e.all, false); e.el.style.strokeWidth = ''; });
+        return;
+      }
+      var lit = new Set();
+      eff.forEach(function (i) {
+        lit.add(i); adj[i].forEach(function (j) { lit.add(j); });
+      });
+      nodes.forEach(function (n) { dim(n.all, !lit.has(n.i), DIM_NODE); });
+      edges.forEach(function (e) {
+        var on = eff.has(e.a) || eff.has(e.b);
+        dim(e.all, !on, DIM_EDGE);
+        e.el.style.strokeWidth = on ? (e.base * ACTIVE_BOOST).toFixed(2) : '';
+      });
+    }
+    function nodeAt(t) {
+      for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].els.indexOf(t) !== -1 || nodes[i].texts.indexOf(t) !== -1) return i;
+      }
+      return null;
+    }
+
+    svg.addEventListener('mouseover', function (ev) {
+      var id = nodeAt(ev.target);
+      if (id !== hoverId) { hoverId = id; apply(); }
+    });
+    svg.addEventListener('mouseleave', function () {
+      if (hoverId !== null) { hoverId = null; apply(); }
+    });
+    svg.addEventListener('click', function (ev) {
+      if (gate && gate.dragged) return;          // a pan must not pin
+      var id = nodeAt(ev.target);
+      if (id === null) { if (pinned.size) { pinned.clear(); apply(); } return; }
+      ev.stopPropagation();
+      if (pinned.has(id)) pinned.delete(id); else pinned.add(id);
+      apply();
+    });
+    window.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Escape' && (pinned.size || hoverId !== null)) {
+        pinned.clear(); hoverId = null; apply();
+      }
+    });
+  }
+
+  /* ======================================================================= */
+  /* 6. zoom + pan                                                           */
+  /* ======================================================================= */
+  function wireZoom(svg, onChange) {
+    var vp = document.createElement('div');
+    vp.className = 'dd-vp';
+    svg.parentNode.insertBefore(vp, svg);
+    vp.appendChild(svg);
+
+    // Height from the viewBox aspect ratio, not a one-off measurement, so the
+    // clip box stays correct when the window resizes.
+    var vb = svg.viewBox && svg.viewBox.baseVal;
+    function fitHeight() {
+      if (!vb || !vb.width) return;
+      vp.style.height = (vp.clientWidth * vb.height / vb.width) + 'px';
+    }
+    fitHeight();
+    window.addEventListener('resize', fitHeight);
+
+    var s = 1, tx = 0, ty = 0;
+    var gate = { dragged: false };
+    svg.style.transformOrigin = '0 0';
+
+    // Keep content anchored: centre it when it is smaller than the viewport,
+    // otherwise bound panning to the content edges. Without this a stray drag
+    // at 100% can push the whole diagram off-screen (review P0-1 / P0-2).
+    function clampPan() {
+      var vpW = vp.clientWidth, vpH = vp.clientHeight;
+      var cW = vpW * s, cH = vpH * s;          // svg fills vp, so this is exact
+      tx = (cW <= vpW) ? (vpW - cW) / 2 : Math.min(0, Math.max(vpW - cW, tx));
+      ty = (cH <= vpH) ? (vpH - cH) / 2 : Math.min(0, Math.max(vpH - cH, ty));
+    }
+
+    function apply() {
+      clampPan();
+      svg.style.transform =
+        'translate(' + tx.toFixed(1) + 'px,' + ty.toFixed(1) + 'px) scale(' + s + ')';
+      // pan is only possible once content exceeds the viewport, so the grab
+      // cursor now matches reality (review P1-1)
+      vp.classList.toggle('dd-pannable', s > 1.001);
+      if (onChange) onChange(Math.round(s * 100));
+    }
+    // zoom about a viewport-local point (transform-origin is 0 0)
+    function zoomTo(ns, px, py) {
+      ns = Math.min(Z_MAX, Math.max(Z_MIN, ns));
+      if (Math.abs(ns - s) < 1e-4) return;
+      tx = px - (px - tx) * (ns / s);
+      ty = py - (py - ty) * (ns / s);
+      s = ns; apply();
+    }
+    function zoomCentre(ns) {
+      var r = vp.getBoundingClientRect();
+      zoomTo(ns, r.width / 2, r.height / 2);
+    }
+    function reset() { s = 1; tx = 0; ty = 0; apply(); }
+
+    vp.addEventListener('wheel', function (ev) {
+      if (!(ev.ctrlKey || ev.metaKey)) return;   // plain scroll = page scroll
+      ev.preventDefault();
+      var r = vp.getBoundingClientRect();
+      zoomTo(s * (ev.deltaY < 0 ? 1.12 : 1 / 1.12),
+             ev.clientX - r.left, ev.clientY - r.top);
+    }, { passive: false });
+
+    var down = null;
+    vp.addEventListener('pointerdown', function (ev) {
+      if (ev.button !== 0) return;
+      down = { x: ev.clientX, y: ev.clientY, tx: tx, ty: ty };
+      gate.dragged = false;
+    });
+    window.addEventListener('pointermove', function (ev) {
+      if (!down) return;
+      var dx = ev.clientX - down.x, dy = ev.clientY - down.y;
+      // 6px, not 4: a trackpad wobble during a tap should not count as a drag
+      if (!gate.dragged && Math.hypot(dx, dy) < 6) return;  // still a click
+      gate.dragged = true;
+      vp.classList.add('dd-panning');
+      tx = down.tx + dx; ty = down.ty + dy; apply();
+    });
+    window.addEventListener('pointerup', function () {
+      down = null; vp.classList.remove('dd-panning');
+      // clear on the next tick so the click handler still sees `dragged`
+      setTimeout(function () { gate.dragged = false; }, 0);
+    });
+
+    window.addEventListener('keydown', function (ev) {
+      if (ev.target && /^(INPUT|TEXTAREA)$/.test(ev.target.tagName)) return;
+      if (ev.key === '+' || ev.key === '=') { zoomCentre(s + Z_STEP); }
+      else if (ev.key === '-' || ev.key === '_') { zoomCentre(s - Z_STEP); }
+      else if (ev.key === '0') { reset(); }
+    });
+
+    apply();
+    return { in: function () { zoomCentre(s + Z_STEP); },
+             out: function () { zoomCentre(s - Z_STEP); },
+             reset: reset, gate: gate };
+  }
+
+  /* ======================================================================= */
+  /* 7. toolbar                                                              */
+  /* ======================================================================= */
+  function buildToolbar(svg, zoom, anim) {
+    var bar = document.createElement('div');
+    bar.className = 'dd-bar';
+
+    function btn(label, title, act) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = label;
+      b.title = title; b.setAttribute('aria-label', title);
+      b.addEventListener('click', act);
+      bar.appendChild(b);
+      return b;
+    }
+
+    var readout = null;
+    if (zoom) {
+      btn('\u2212', 'Zoom out  (\u2212)', zoom.out);
+      readout = document.createElement('span');
+      readout.className = 'dd-z'; readout.textContent = '100%';
+      bar.appendChild(readout);
+      btn('+', 'Zoom in  (+)', zoom.in);
+      btn('\u21BA', 'Reset zoom  (0)', zoom.reset);
+    }
+
+    if (anim) {
+      if (zoom) {
+        var sep = document.createElement('span');
+        sep.className = 'dd-sep'; bar.appendChild(sep);
+      }
+      var on = anim.enabled;
+      var t = btn('', '', function () { on = !on; anim.set(on); paint(); });
+      function paint() {
+        t.innerHTML = '<i class="dd-led"></i>ANIM';
+        t.className = on ? 'dd-on' : '';
+        t.title = on ? 'Turn animation off' : 'Turn animation on';
+        t.setAttribute('aria-pressed', String(on));
+      }
+      paint();
+    }
+
+    document.body.appendChild(bar);
+    return { setZoom: function (p) { if (readout) readout.textContent = p + '%'; } };
+  }
+
+  /* ======================================================================= */
+  /* styles                                                                  */
+  /* ======================================================================= */
+  function injectCSS() {
+    var s = document.createElement('style');
+    s.textContent = [
+      '.dd-t{transition:opacity .18s ease,stroke-width .18s ease}',
+      // user-select:none -- with pan clamped at 100%, a drag would otherwise
+      // fall through to native text selection and highlight every label
+      '.dd-vp{overflow:hidden;position:relative;touch-action:none;',
+      'user-select:none;-webkit-user-select:none}',
+      '.dd-vp>svg{will-change:transform}',
+      '.dd-pannable{cursor:grab}.dd-panning{cursor:grabbing}',
+      '.dd-anim-off .dd-dot{display:none}',
+      '.dd-bar{position:fixed;right:1rem;bottom:1rem;z-index:99;display:flex;',
+      'align-items:center;gap:.15rem;padding:.28rem;border-radius:7px;',
+      'background:rgba(255,255,255,.86);backdrop-filter:blur(8px);',
+      'border:1px solid rgba(45,49,66,.14);',
+      'box-shadow:0 2px 10px rgba(45,49,66,.08);',
+      'font-family:"Geist Mono",ui-monospace,monospace}',
+      '.dd-bar button{display:flex;align-items:center;gap:.34rem;',
+      'font:inherit;font-size:.62rem;letter-spacing:.12em;line-height:1;',
+      'padding:.4rem .5rem;min-width:1.75rem;justify-content:center;',
+      'border:0;border-radius:4px;background:transparent;color:#64748b;',
+      'cursor:pointer;transition:background .15s,color .15s}',
+      '.dd-bar button:hover{background:rgba(45,49,66,.07);color:#1e293b}',
+      '.dd-bar button:focus-visible{outline:2px solid currentColor;outline-offset:1px}',
+      '.dd-bar .dd-z{font-size:.6rem;color:#94a3b8;min-width:2.9rem;',
+      'text-align:center;letter-spacing:.06em;font-variant-numeric:tabular-nums}',
+      '.dd-bar .dd-sep{width:1px;height:1rem;background:rgba(45,49,66,.14);',
+      'margin:0 .22rem}',
+      '.dd-led{width:5px;height:5px;border-radius:50%;background:currentColor;',
+      'opacity:.35;transition:opacity .15s,box-shadow .15s}',
+      '.dd-bar button.dd-on{color:#1e293b}',
+      '.dd-bar button.dd-on .dd-led{opacity:1;box-shadow:0 0 0 2.5px rgba(100,116,139,.18)}',
+      '@media print{.dd-bar{display:none}.dd-dot{display:none}',
+      '.dd-vp{overflow:visible;height:auto!important}',
+      '.dd-vp>svg{transform:none!important}}'
+    ].join('');
+    document.head.appendChild(s);
+  }
+
+  /* ======================================================================= */
+  /* main                                                                    */
+  /* ======================================================================= */
+  ready(function (svg) {
+    var scale = userScale(svg);
+    var tol = { link: LINK_TOL * scale, label: LABEL_TOL * scale };
+
+    var nodes = findNodes(svg);
+    var edges = findEdges(svg, nodes, tol.link);
+
+    // HARD BAIL for non-topological types (bar, venn, quadrant, radar,
+    // scatter, timeline): no CSS, no listeners, no DOM mutation at all.
+    if (nodes.length < 2 || edges.length < 1) {
+      if (CFG.debug) console.info('[dd] no topology - inactive');
+      return;
+    }
+
+    assignText(svg, nodes, edges, tol);
+    injectCSS();
+
+    var reduced = window.matchMedia &&
+                  matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* animation first, so comets are part of each edge's dim group */
+    var animated = 0, anim = null;
+    if (WANT_ANIM) {
+      var accent = CFG.accent || readAccent() || '#eb6c36';
+      animated = wireAnimation(svg, edges, accent);
+      if (animated) {
+        // Under reduced-motion the comets are BUILT but start OFF and paused,
+        // so nothing moves by default yet the toggle remains usable.
+        anim = {
+          enabled: !reduced,
+          set: function (on) {
+            this.enabled = on;
+            document.body.classList.toggle('dd-anim-off', !on);
+            if (on) svg.unpauseAnimations(); else svg.pauseAnimations();
+            // set() runs during boot, before __DD_STATE__ exists
+            if (window.__DD_STATE__) window.__DD_STATE__.animOn = on;
+          }
+        };
+        anim.set(!reduced);
+      }
+    }
+
+    var zoom = WANT_ZOOM ? wireZoom(svg, function (p) { bar && bar.setZoom(p); }) : null;
+    if (WANT_HOVER) wireHover(svg, nodes, edges, zoom && zoom.gate);
+
+    var bar = (zoom || anim) ? buildToolbar(svg, zoom, anim) : null;
+
+    window.__DD_STATE__ = {
+      nodes: nodes.length, edges: edges.length, animated: animated,
+      reduced: !!reduced, animOn: !!(anim && anim.enabled), zoom: !!zoom
+    };
+    if (CFG.debug) console.info('[dd]', window.__DD_STATE__);
+  });
+
+  function readAccent() {
+    var v = getComputedStyle(document.documentElement)
+              .getPropertyValue('--color-accent');
+    return v && v.trim() ? v.trim() : null;
+  }
+})();
+
+</script>
+<!-- dd:interactive:end -->
+</body>
+</html>
