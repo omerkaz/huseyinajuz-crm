@@ -1,7 +1,7 @@
-import systemArchitectureHtml from "@/diagrams/system-architecture.html?raw";
-import emailPipelineHtml from "@/diagrams/email-pipeline.html?raw";
-import v12MilestoneStatusHtml from "@/diagrams/v12-milestone-status.html?raw";
-import phase15DripStatesHtml from "@/diagrams/phase15-drip-states.html?raw";
+import systemArchitectureHtml from "../../docs/diagrams/system-architecture.html?raw";
+import emailPipelineHtml from "../../docs/diagrams/email-pipeline.html?raw";
+import v12MilestoneStatusHtml from "../../docs/diagrams/v12-milestone-status.html?raw";
+import phase15DripStatesHtml from "../../docs/diagrams/phase15-drip-states.html?raw";
 
 /**
  * Registry for the self-contained diagram documents rendered at /diagrams.
