@@ -1,18 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router";
-import { Badge, Card, getVariantForState } from "@/components/ui";
-import { PatientStatusBadge } from "@/components/patients/PatientStatusBadge";
+import { Badge, Button, Card } from "@/components/ui";
+import { LensAvatar } from "@/components/patients/LensAvatar";
+import { LifecycleMiniScale } from "@/components/patients/LifecycleScale";
 import { getPatients } from "@/lib/patients";
 import { LIFECYCLE_STATES, LIFECYCLE_LABELS } from "@/types/database";
 import type { LifecycleState, PackageType, Patient } from "@/types/database";
-import { Kanban, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui";
+import { Loader2 } from "lucide-react";
 
 const packageLabels: Record<PackageType, string> = {
   standard: "Standard",
   premium: "Premium",
   vip: "VIP",
 };
+
+/** Channels where a waiting patient means the practitioner owes an action. */
+const ATTENTION_STATES: readonly LifecycleState[] = [
+  "awaiting_blood_test",
+  "week_6_checkin",
+  "end_review",
+];
 
 function groupByState(
   patients: Patient[],
@@ -25,6 +32,10 @@ function groupByState(
     grouped[patient.lifecycle_state].push(patient);
   }
   return grouped;
+}
+
+function formatReadingDate(iso: string | null, fallback: string): string {
+  return new Date(iso ?? fallback).toISOString().slice(0, 10);
 }
 
 export default function PipelinePage() {
@@ -55,16 +66,16 @@ export default function PipelinePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-teal" />
+        <Loader2 className="h-8 w-8 animate-spin text-ink" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <Card hover={false} className="text-center py-12">
-        <p className="text-coral font-medium">Something went wrong</p>
-        <p className="mt-1 text-sm text-text-secondary">{error}</p>
+      <Card hover={false} className="py-12 text-center">
+        <p className="font-medium text-red">Something went wrong</p>
+        <p className="mt-1 text-sm text-ink-secondary">{error}</p>
         <Button
           variant="secondary"
           size="sm"
@@ -80,73 +91,93 @@ export default function PipelinePage() {
   const grouped = groupByState(patients);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Kanban className="h-6 w-6 text-teal" />
-        <div>
-          <h1 className="font-heading text-2xl text-text">Pipeline</h1>
-          <p className="mt-0.5 text-sm text-text-secondary">
-            {patients.length} {patients.length === 1 ? "patient" : "patients"} across {LIFECYCLE_STATES.length} stages
-          </p>
-        </div>
-      </div>
+    <div className="space-y-4">
+      {/* Reading header */}
+      <p className="reading text-[0.72rem] text-ink-secondary">
+        {String(patients.length).padStart(2, "0")} PATIENTS ·{" "}
+        {LIFECYCLE_STATES.length} CHANNELS
+      </p>
 
-      {/* Kanban columns */}
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {LIFECYCLE_STATES.map((state) => {
-          const statePatients = grouped[state];
-          const count = statePatients.length;
+      {/* Reading channels */}
+      <Card hover={false} className="overflow-x-auto p-0">
+        <div className="flex min-h-[420px]">
+          {LIFECYCLE_STATES.map((state) => {
+            const statePatients = grouped[state];
+            const count = statePatients.length;
+            const needsAttention =
+              count > 0 && ATTENTION_STATES.includes(state);
 
-          return (
-            <div
-              key={state}
-              className="min-w-[260px] flex-shrink-0 rounded-xl border border-border bg-surface/50 p-3"
-            >
-              {/* Column header */}
-              <div className="mb-3 flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold text-text">
-                  {LIFECYCLE_LABELS[state]}
-                </span>
-                <Badge variant={getVariantForState(state)}>
-                  {count}
-                </Badge>
-              </div>
+            return (
+              <div
+                key={state}
+                className="w-[236px] shrink-0 border-l border-hairline px-3 py-4 first:border-l-0"
+              >
+                {/* Channel header */}
+                <div className="mb-3 flex items-baseline justify-between gap-2 px-1">
+                  <span className="display-condensed flex items-center gap-1.5 text-[0.78rem] text-ink">
+                    {needsAttention && (
+                      <span
+                        className="h-2 w-2 shrink-0 rounded-full bg-yellow ring-1 ring-hairline-strong"
+                        role="img"
+                        aria-label="Needs attention"
+                      />
+                    )}
+                    {LIFECYCLE_LABELS[state]}
+                  </span>
+                  <span className="reading text-[0.75rem] text-ink-secondary">
+                    {String(count).padStart(2, "0")}
+                  </span>
+                </div>
 
-              {/* Column body */}
-              <div className="space-y-2">
-                {count === 0 ? (
-                  <p className="py-6 text-center text-xs text-text-muted">
-                    No patients
-                  </p>
-                ) : (
-                  statePatients.map((patient) => (
-                    <Link
-                      key={patient.id}
-                      to={`/patients/${patient.id}`}
-                      className="block"
-                    >
-                      <Card className="!p-4 !rounded-lg">
-                        <p className="truncate text-sm font-medium text-text">
-                          {patient.first_name} {patient.last_name}
-                        </p>
-                        <div className="mt-2 flex items-center gap-2">
-                          <PatientStatusBadge status={patient.lifecycle_state} />
+                {/* Channel body */}
+                <div className="space-y-2">
+                  {count === 0 ? (
+                    <p className="reading py-6 text-center text-[0.7rem] text-ink-muted">
+                      — 00 —
+                    </p>
+                  ) : (
+                    statePatients.map((patient) => (
+                      <Link
+                        key={patient.id}
+                        to={`/patients/${patient.id}`}
+                        className="block rounded-[6px] border border-hairline bg-surface p-3 transition-colors duration-150 hover:border-hairline-strong"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <LensAvatar
+                            firstName={patient.first_name}
+                            lastName={patient.last_name}
+                            size="sm"
+                          />
+                          <p className="min-w-0 flex-1 truncate text-[0.82rem] font-semibold [font-stretch:87.5%] text-ink">
+                            {patient.first_name} {patient.last_name}
+                          </p>
+                        </div>
+                        <LifecycleMiniScale
+                          state={patient.lifecycle_state}
+                          className="mt-3"
+                        />
+                        <div className="mt-2.5 flex items-center justify-between gap-2">
+                          <span className="reading text-[0.65rem] text-ink-muted">
+                            {formatReadingDate(
+                              patient.state_changed_at,
+                              patient.created_at,
+                            )}
+                          </span>
                           {patient.package_type && (
                             <Badge variant="neutral">
                               {packageLabels[patient.package_type]}
                             </Badge>
                           )}
                         </div>
-                      </Card>
-                    </Link>
-                  ))
-                )}
+                      </Link>
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </Card>
     </div>
   );
 }

@@ -25,19 +25,21 @@ export default function Topbar() {
   const pageTitle = usePageTitle();
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-divider bg-surface px-6 md:px-8">
-      {/* Left — page title area (pushed right on mobile to clear hamburger) */}
+    <header className="flex h-14 items-center justify-between border-b border-hairline bg-surface px-6 md:px-8">
+      {/* Left — page title (pushed right on mobile to clear hamburger) */}
       <div className="pl-10 md:pl-0">
-        <h2 className="font-heading text-lg text-text">{pageTitle}</h2>
+        <h2 className="display-condensed text-[0.95rem] text-ink">
+          {pageTitle}
+        </h2>
       </div>
 
-      {/* Right — user info + sign-out */}
+      {/* Right — operator + sign-out */}
       <div className="flex items-center gap-4">
-        <span className="hidden text-sm text-text-secondary sm:inline">
+        <span className="reading hidden text-[0.72rem] text-ink-secondary sm:inline">
           {user?.email ?? "—"}
         </span>
         <Button variant="secondary" size="sm" onClick={signOut}>
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Sign out</span>
         </Button>
       </div>

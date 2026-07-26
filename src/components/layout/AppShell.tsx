@@ -11,8 +11,10 @@ export default function AppShell() {
     <div className="flex min-h-screen bg-bg">
       <Sidebar />
 
-      {/* Main column: topbar + scrollable content */}
-      <div className="flex flex-1 flex-col md:ml-0">
+      {/* Main column: topbar + scrollable content.
+          min-w-0 lets wide content (e.g. Pipeline channels) scroll inside
+          overflow-x-auto instead of stretching the layout. */}
+      <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
         <main className="flex-1 overflow-y-auto p-6 md:p-8">
           <Outlet />

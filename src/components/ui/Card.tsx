@@ -4,13 +4,14 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   hover?: boolean;
 }
 
+/* Flat instrument panel: hairline-ruled bezel, no shadows, no lift. */
 function Card({ hover = true, className = "", children, ...props }: CardProps) {
   return (
     <div
       className={`
-        bg-surface rounded-[14px] shadow-warm p-8
-        transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
-        ${hover ? "hover:shadow-warm-lg hover:-translate-y-0.5" : ""}
+        bg-surface rounded-[8px] border border-hairline p-6
+        transition-colors duration-150
+        ${hover ? "hover:border-hairline-strong" : ""}
         ${className}
       `}
       {...props}

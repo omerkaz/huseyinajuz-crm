@@ -69,8 +69,8 @@ export default function PaymentsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-heading text-2xl text-text">Payments</h1>
-        <p className="mt-1 text-sm text-text-secondary">
+        <h1 className="display-condensed text-[1.3rem] text-ink">Payments</h1>
+        <p className="mt-1 text-sm text-ink-secondary">
           View and filter all recorded payments.
         </p>
       </div>
@@ -95,12 +95,12 @@ export default function PaymentsPage() {
       {/* Content area */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-teal" />
+          <Loader2 className="h-8 w-8 animate-spin text-ink" />
         </div>
       ) : error ? (
         <Card hover={false} className="text-center py-12">
-          <p className="text-coral font-medium">Something went wrong</p>
-          <p className="mt-1 text-sm text-text-secondary">{error}</p>
+          <p className="text-red font-medium">Something went wrong</p>
+          <p className="mt-1 text-sm text-ink-secondary">{error}</p>
           <Button
             variant="secondary"
             size="sm"
@@ -112,13 +112,13 @@ export default function PaymentsPage() {
         </Card>
       ) : payments.length === 0 ? (
         <Card hover={false} className="text-center py-16">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-teal/10">
-            <CreditCard className="h-8 w-8 text-teal" />
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-hairline-strong bg-ink-wash">
+            <CreditCard className="h-7 w-7 text-ink-secondary" strokeWidth={1.5} />
           </div>
-          <h3 className="mt-4 font-heading text-lg text-text">
+          <h3 className="mt-4 display-condensed text-[1rem] text-ink">
             {methodFilter ? "No payments match this filter" : "No payments yet"}
           </h3>
-          <p className="mt-1 text-sm text-text-secondary">
+          <p className="mt-1 text-sm text-ink-secondary">
             {methodFilter
               ? "Try selecting a different payment method."
               : "Payments will appear here once recorded on patient records."}
@@ -138,20 +138,20 @@ export default function PaymentsPage() {
                 <div className="min-w-0 flex-1">
                   <Link
                     to={`/patients/${payment.patient_id}`}
-                    className="font-medium text-teal hover:underline"
+                    className="font-medium text-cyan-deep hover:underline"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {patientName}
                   </Link>
                   {payment.reference && (
-                    <p className="truncate text-sm text-text-secondary">
+                    <p className="truncate text-sm text-ink-secondary">
                       Ref: {payment.reference}
                     </p>
                   )}
                 </div>
 
                 {/* Amount */}
-                <span className="font-semibold text-text">
+                <span className="font-semibold text-ink">
                   {formatCurrency(payment.amount)}
                 </span>
 
@@ -161,7 +161,7 @@ export default function PaymentsPage() {
                 </Badge>
 
                 {/* Date */}
-                <span className="hidden text-sm text-text-secondary sm:inline">
+                <span className="hidden text-sm text-ink-secondary sm:inline">
                   {dateFormatter.format(new Date(payment.payment_date))}
                 </span>
               </Card>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router";
 import { Badge, Button, Card } from "@/components/ui";
+import { LensAvatar } from "@/components/patients/LensAvatar";
 import { PatientStatusBadge } from "@/components/patients/PatientStatusBadge";
 import { PatientFilters } from "@/components/patients/PatientFilters";
 import { getPatients } from "@/lib/patients";
@@ -8,9 +9,10 @@ import { getPayments } from "@/lib/payments";
 import type { LifecycleState, PackageType, Patient, Payment, PaymentStatus } from "@/types/database";
 import { Loader2, Plus, Users } from "lucide-react";
 
-const paymentStatusVariant: Record<PaymentStatus, "teal" | "coral" | "muted"> = {
-  paid: "teal",
-  partial: "coral",
+/* paid = settled growth, partial = needs attention, unpaid = not in motion */
+const paymentStatusVariant: Record<PaymentStatus, "olive" | "yellow" | "muted"> = {
+  paid: "olive",
+  partial: "yellow",
   unpaid: "muted",
 };
 
@@ -120,13 +122,10 @@ export default function PatientsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-heading text-2xl text-text">Patients</h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            Manage patient records and track lifecycle progress.
-          </p>
-        </div>
+      <div className="flex items-center justify-between gap-4">
+        <p className="reading text-[0.72rem] text-ink-secondary">
+          {String(patients.length).padStart(2, "0")} RECORDS
+        </p>
         <Link to="/patients/new">
           <Button size="sm">
             <Plus className="h-4 w-4" />
@@ -150,12 +149,12 @@ export default function PatientsPage() {
       {/* Content area */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-teal" />
+          <Loader2 className="h-8 w-8 animate-spin text-ink" />
         </div>
       ) : error ? (
         <Card hover={false} className="text-center py-12">
-          <p className="text-coral font-medium">Something went wrong</p>
-          <p className="mt-1 text-sm text-text-secondary">{error}</p>
+          <p className="font-medium text-red">Something went wrong</p>
+          <p className="mt-1 text-sm text-ink-secondary">{error}</p>
           <Button
             variant="secondary"
             size="sm"
@@ -167,15 +166,15 @@ export default function PatientsPage() {
         </Card>
       ) : patients.length === 0 ? (
         <Card hover={false} className="text-center py-16">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-teal/10">
-            <Users className="h-8 w-8 text-teal" />
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-hairline-strong bg-ink-wash">
+            <Users className="h-7 w-7 text-ink-secondary" strokeWidth={1.5} />
           </div>
-          <h3 className="mt-4 font-heading text-lg text-text">
+          <h3 className="display-condensed mt-4 text-[1rem] text-ink">
             {search || status || packageType
               ? "No patients match your filters"
               : "No patients yet"}
           </h3>
-          <p className="mt-1 text-sm text-text-secondary">
+          <p className="mt-1 text-sm text-ink-secondary">
             {search || status || packageType
               ? "Try adjusting your search or filters."
               : "Add your first patient to get started."}
@@ -190,56 +189,63 @@ export default function PatientsPage() {
           )}
         </Card>
       ) : (
-        <div className="space-y-3">
-          {patients.map((patient) => (
-            <Link
-              key={patient.id}
-              to={`/patients/${patient.id}`}
-              className="block"
-            >
-              <Card className="flex items-center gap-4">
-                {/* Name + email */}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-text">
-                    {patient.first_name} {patient.last_name}
-                  </p>
-                  {patient.email && (
-                    <p className="truncate text-sm text-text-secondary">
-                      {patient.email}
+        <Card hover={false} className="p-0">
+          <ul>
+            {patients.map((patient) => (
+              <li key={patient.id} className="border-b border-hairline last:border-b-0">
+                <Link
+                  to={`/patients/${patient.id}`}
+                  className="flex items-center gap-4 px-5 py-3.5 transition-colors duration-150 hover:bg-ink-wash"
+                >
+                  <LensAvatar
+                    firstName={patient.first_name}
+                    lastName={patient.last_name}
+                    size="sm"
+                  />
+
+                  {/* Name + email */}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[0.88rem] font-semibold [font-stretch:87.5%] text-ink">
+                      {patient.first_name} {patient.last_name}
                     </p>
+                    {patient.email && (
+                      <p className="truncate text-[0.75rem] text-ink-secondary">
+                        {patient.email}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Status chip */}
+                  <PatientStatusBadge status={patient.lifecycle_state} />
+
+                  {/* Payment chip */}
+                  {paymentStatusMap.has(patient.id) && (
+                    <Badge variant={paymentStatusVariant[paymentStatusMap.get(patient.id)!]}>
+                      {paymentStatusLabel[paymentStatusMap.get(patient.id)!]}
+                    </Badge>
                   )}
-                </div>
 
-                {/* Status badge */}
-                <PatientStatusBadge status={patient.lifecycle_state} />
+                  {/* Package */}
+                  {patient.package_type && (
+                    <span className="hidden text-[0.78rem] text-ink-secondary sm:inline">
+                      {packageLabels[patient.package_type]}
+                    </span>
+                  )}
 
-                {/* Payment status badge */}
-                {paymentStatusMap.has(patient.id) && (
-                  <Badge variant={paymentStatusVariant[paymentStatusMap.get(patient.id)!]}>
-                    {paymentStatusLabel[paymentStatusMap.get(patient.id)!]}
-                  </Badge>
-                )}
-
-                {/* Package */}
-                {patient.package_type && (
-                  <span className="hidden text-sm text-text-secondary sm:inline">
-                    {packageLabels[patient.package_type]}
+                  {/* Phone — a reading */}
+                  <span className="reading hidden text-[0.72rem] text-ink-secondary lg:inline">
+                    {patient.phone_country_code} {patient.phone_number}
                   </span>
-                )}
 
-                {/* Phone */}
-                <span className="hidden text-sm text-text-secondary lg:inline">
-                  {patient.phone_country_code} {patient.phone_number}
-                </span>
-
-                {/* Date */}
-                <span className="hidden text-xs text-text-muted xl:inline">
-                  {new Date(patient.created_at).toLocaleDateString()}
-                </span>
-              </Card>
-            </Link>
-          ))}
-        </div>
+                  {/* Date — a reading */}
+                  <span className="reading hidden text-[0.68rem] text-ink-muted xl:inline">
+                    {new Date(patient.created_at).toISOString().slice(0, 10)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
       )}
     </div>
   );

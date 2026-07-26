@@ -39,8 +39,8 @@ function formatCurrency(amount: number): string {
 }
 
 const STATUS_BADGE_VARIANT = {
-  paid: "teal",
-  partial: "coral",
+  paid: "olive",
+  partial: "yellow",
   unpaid: "muted",
 } as const;
 
@@ -156,8 +156,8 @@ export function PaymentsList({ patientId, packageType, agreedPrice }: PaymentsLi
   if (loading) {
     return (
       <div className="flex items-center gap-2 py-4">
-        <Loader2 className="h-4 w-4 animate-spin text-teal" />
-        <span className="text-sm text-text-secondary">Loading payments…</span>
+        <Loader2 className="h-4 w-4 animate-spin text-ink" />
+        <span className="text-sm text-ink-secondary">Loading payments…</span>
       </div>
     );
   }
@@ -170,7 +170,7 @@ export function PaymentsList({ patientId, packageType, agreedPrice }: PaymentsLi
           <Badge variant={STATUS_BADGE_VARIANT[summary.status]}>
             {STATUS_LABELS[summary.status]}
           </Badge>
-          <span className="text-text-secondary">
+          <span className="text-ink-secondary">
             {formatCurrency(summary.totalPaid)} paid
             {summary.paymentCount > 0 && ` (${summary.paymentCount} payment${summary.paymentCount === 1 ? "" : "s"})`}
           </span>
@@ -227,27 +227,27 @@ export function PaymentsList({ patientId, packageType, agreedPrice }: PaymentsLi
         Add Payment
       </Button>
 
-      {error && <p className="text-sm text-coral">{error}</p>}
+      {error && <p className="text-sm text-red">{error}</p>}
 
       {/* Payments list */}
       {payments.length === 0 ? (
-        <p className="text-sm text-text-muted italic py-2">No payments recorded yet.</p>
+        <p className="text-sm text-ink-muted italic py-2">No payments recorded yet.</p>
       ) : (
         <ul className="space-y-3">
           {payments.map((payment) => (
             <li
               key={payment.id}
-              className="relative pl-4 border-l-2 border-divider"
+              className="relative pl-4 border-l-2 border-hairline"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-text font-medium">
+                  <p className="text-sm text-ink font-medium">
                     {formatCurrency(payment.amount)}{" "}
-                    <span className="font-normal text-text-secondary">
+                    <span className="font-normal text-ink-secondary">
                       via {PAYMENT_METHOD_LABELS[payment.payment_method]}
                     </span>
                   </p>
-                  <p className="text-xs text-text-muted mt-0.5">
+                  <p className="text-xs text-ink-muted mt-0.5">
                     {dateFormatter.format(new Date(payment.payment_date))}
                     {payment.reference && (
                       <span className="ml-2">— {payment.reference}</span>
@@ -257,7 +257,7 @@ export function PaymentsList({ patientId, packageType, agreedPrice }: PaymentsLi
                 <button
                   onClick={() => void handleDelete(payment.id)}
                   disabled={deletingId === payment.id}
-                  className="shrink-0 p-1 text-text-muted hover:text-coral transition-colors disabled:opacity-50"
+                  className="shrink-0 p-1 text-ink-muted hover:text-red transition-colors disabled:opacity-50"
                   title="Delete payment"
                 >
                   {deletingId === payment.id ? (

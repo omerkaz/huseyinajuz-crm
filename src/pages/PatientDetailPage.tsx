@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { ArrowLeft, Edit, Loader2, Trash2 } from "lucide-react";
 import { Badge, Button, Card } from "@/components/ui";
+import { LensAvatar } from "@/components/patients/LensAvatar";
+import { LifecycleMiniScale } from "@/components/patients/LifecycleScale";
 import { PatientStatusBadge } from "@/components/patients/PatientStatusBadge";
 import { StateTransitionButton } from "@/components/patients/StateTransitionButton";
 import { NotesList } from "@/components/patients/NotesList";
@@ -22,10 +24,8 @@ const dateFormatter = new Intl.DateTimeFormat("en-GB", {
 function InfoItem({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-xs font-medium text-text-muted uppercase tracking-wider">
-        {label}
-      </dt>
-      <dd className="mt-0.5 text-sm text-text">{children || "—"}</dd>
+      <dt className="scale-label text-ink-muted">{label}</dt>
+      <dd className="mt-0.5 text-sm text-ink">{children || "—"}</dd>
     </div>
   );
 }
@@ -101,8 +101,8 @@ export default function PatientDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-teal" />
-        <span className="ml-3 text-text-secondary">Loading patient…</span>
+        <Loader2 className="h-6 w-6 animate-spin text-ink" />
+        <span className="ml-3 text-ink-secondary">Loading patient…</span>
       </div>
     );
   }
@@ -113,13 +113,13 @@ export default function PatientDetailPage() {
       <div className="space-y-4">
         <button
           onClick={() => void navigate("/patients")}
-          className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-ink-secondary transition-colors hover:text-ink"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to patients
         </button>
         <Card hover={false}>
-          <p className="text-coral">{error ?? "Patient not found."}</p>
+          <p className="font-medium text-red">{error ?? "Patient not found."}</p>
         </Card>
       </div>
     );
@@ -152,17 +152,28 @@ export default function PatientDetailPage() {
       {/* Back link */}
       <button
         onClick={() => void navigate("/patients")}
-        className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-ink-secondary transition-colors hover:text-ink"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to patients
       </button>
 
-      {/* Header */}
+      {/* Specimen header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <h1 className="font-heading text-2xl text-text">{fullName}</h1>
-          <PatientStatusBadge status={patient.lifecycle_state} />
+        <div className="flex items-center gap-4">
+          <LensAvatar
+            firstName={patient.first_name}
+            lastName={patient.last_name}
+            size="lg"
+          />
+          <div>
+            <h1 className="display-condensed text-[1.45rem] text-ink">
+              {fullName}
+            </h1>
+            <div className="mt-1.5 flex items-center gap-2">
+              <PatientStatusBadge status={patient.lifecycle_state} />
+            </div>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -188,7 +199,7 @@ export default function PatientDetailPage() {
 
       {/* Patient Info */}
       <Card hover={false}>
-        <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-4">
+        <h2 className="scale-label mb-4 text-ink-secondary">
           Patient Information
         </h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
@@ -202,9 +213,9 @@ export default function PatientDetailPage() {
                 <Badge
                   variant={
                     paymentSummary.status === "paid"
-                      ? "teal"
+                      ? "olive"
                       : paymentSummary.status === "partial"
-                        ? "coral"
+                        ? "yellow"
                         : "muted"
                   }
                 >
@@ -214,7 +225,7 @@ export default function PatientDetailPage() {
                       ? "Partial"
                       : "Unpaid"}
                 </Badge>
-                <span className="text-text-secondary">
+                <span className="reading text-[0.78rem] text-ink-secondary">
                   ${paymentSummary.totalPaid.toFixed(2)}
                 </span>
               </span>
@@ -243,11 +254,13 @@ export default function PatientDetailPage() {
         </dl>
       </Card>
 
-      {/* State Transitions */}
+      {/* Lifecycle reading + transition */}
       <Card hover={false}>
-        <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-4">
-          Lifecycle State
-        </h2>
+        <h2 className="scale-label mb-4 text-ink-secondary">Lifecycle Scale</h2>
+        <LifecycleMiniScale
+          state={patient.lifecycle_state}
+          className="mb-5 max-w-md"
+        />
         <StateTransitionButton
           patientId={patient.id}
           currentState={patient.lifecycle_state}
@@ -257,17 +270,13 @@ export default function PatientDetailPage() {
 
       {/* Notes */}
       <Card hover={false}>
-        <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-4">
-          Notes
-        </h2>
+        <h2 className="scale-label mb-4 text-ink-secondary">Notes</h2>
         <NotesList patientId={patient.id} />
       </Card>
 
       {/* Payments */}
       <Card hover={false}>
-        <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-4">
-          Payments
-        </h2>
+        <h2 className="scale-label mb-4 text-ink-secondary">Payments</h2>
         <PaymentsList
           patientId={patient.id}
           packageType={patient.package_type as PackageType | null}
@@ -277,9 +286,7 @@ export default function PatientDetailPage() {
 
       {/* Files */}
       <Card hover={false}>
-        <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wider mb-4">
-          Files
-        </h2>
+        <h2 className="scale-label mb-4 text-ink-secondary">Files</h2>
         <FileUpload patientId={patient.id} />
       </Card>
     </div>

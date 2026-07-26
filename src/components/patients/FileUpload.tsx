@@ -123,8 +123,8 @@ export function FileUpload({ patientId }: FileUploadProps) {
   if (loading) {
     return (
       <div className="flex items-center gap-2 py-4">
-        <Loader2 className="h-4 w-4 animate-spin text-teal" />
-        <span className="text-sm text-text-secondary">
+        <Loader2 className="h-4 w-4 animate-spin text-ink" />
+        <span className="text-sm text-ink-secondary">
           Loading attachments…
         </span>
       </div>
@@ -151,23 +151,23 @@ export function FileUpload({ patientId }: FileUploadProps) {
             flex flex-col items-center gap-2
             text-sm transition-colors
             ${uploading
-              ? "border-teal/40 bg-teal/5 cursor-wait"
-              : "border-divider hover:border-teal hover:bg-teal/5 cursor-pointer"
+              ? "border-ink/40 bg-ink-wash cursor-wait"
+              : "border-hairline-strong hover:border-ink hover:bg-ink-wash cursor-pointer"
             }
           `}
         >
           {uploading ? (
             <>
-              <Loader2 className="h-6 w-6 animate-spin text-teal" />
-              <span className="text-text-secondary">Uploading…</span>
+              <Loader2 className="h-6 w-6 animate-spin text-ink" />
+              <span className="text-ink-secondary">Uploading…</span>
             </>
           ) : (
             <>
-              <Upload className="h-6 w-6 text-text-muted" />
-              <span className="text-text-secondary">
+              <Upload className="h-6 w-6 text-ink-muted" />
+              <span className="text-ink-secondary">
                 Click to upload a file
               </span>
-              <span className="text-xs text-text-muted">
+              <span className="text-xs text-ink-muted">
                 PDF, JPG, PNG, DOC, DOCX
               </span>
             </>
@@ -175,11 +175,11 @@ export function FileUpload({ patientId }: FileUploadProps) {
         </button>
       </div>
 
-      {error && <p className="text-sm text-coral">{error}</p>}
+      {error && <p className="text-sm text-red">{error}</p>}
 
       {/* Attachment list */}
       {attachments.length === 0 ? (
-        <p className="text-sm text-text-muted italic py-2">
+        <p className="text-sm text-ink-muted italic py-2">
           No files uploaded.
         </p>
       ) : (
@@ -187,13 +187,13 @@ export function FileUpload({ patientId }: FileUploadProps) {
           {attachments.map((att) => (
             <li
               key={att.id}
-              className="flex items-center gap-3 rounded-lg border border-divider px-4 py-3"
+              className="flex items-center gap-3 rounded-lg border border-hairline px-4 py-3"
             >
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-text font-medium truncate">
+                <p className="text-sm text-ink font-medium truncate">
                   {att.file_name}
                 </p>
-                <p className="text-xs text-text-muted">
+                <p className="text-xs text-ink-muted">
                   {formatFileSize(att.file_size)} ·{" "}
                   {dateFormatter.format(new Date(att.created_at))}
                 </p>
@@ -212,7 +212,7 @@ export function FileUpload({ patientId }: FileUploadProps) {
                 <button
                   onClick={() => void handleDelete(att)}
                   disabled={deletingId === att.id}
-                  className="p-1.5 text-text-muted hover:text-coral transition-colors disabled:opacity-50"
+                  className="p-1.5 text-ink-muted hover:text-red transition-colors disabled:opacity-50"
                   title="Delete file"
                 >
                   {deletingId === att.id ? (

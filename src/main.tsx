@@ -8,8 +8,6 @@ import "./app.css";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthProvider>
-      <div className="grain" />
-      <div className="vignette" />
       <RouterProvider router={router} />
     </AuthProvider>
   </StrictMode>,

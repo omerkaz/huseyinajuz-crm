@@ -10,19 +10,18 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
 }
 
+/* Instrument controls: flat ink panels, condensed uppercase labels, snap response. */
 const variantClasses: Record<ButtonVariant, string> = {
-  primary:
-    "bg-teal text-white hover:bg-teal-hover shadow-[0_4px_16px_var(--color-teal-glow)] hover:shadow-[0_6px_24px_rgba(42,157,143,0.3)]",
+  primary: "bg-ink text-white hover:bg-[#37305C]",
   secondary:
-    "bg-transparent text-teal border-2 border-teal hover:bg-teal hover:text-white",
-  danger:
-    "bg-coral text-white hover:bg-[#D45A3D] shadow-[0_4px_16px_var(--color-coral-glow)]",
+    "bg-transparent text-ink border border-hairline-strong hover:bg-ink-wash",
+  danger: "bg-red text-white hover:bg-[#992917]",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: "px-4 py-1.5 text-sm rounded-lg",
-  md: "px-6 py-2.5 text-sm rounded-[100px]",
-  lg: "px-8 py-3 text-base rounded-[100px]",
+  sm: "px-3.5 py-1.5 text-[0.72rem] rounded-[6px]",
+  md: "px-5 py-2.5 text-[0.78rem] rounded-[6px]",
+  lg: "px-7 py-3 text-[0.85rem] rounded-[6px]",
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -44,10 +43,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || loading}
         className={`
           inline-flex items-center justify-center gap-2
-          font-semibold transition-all duration-300
-          ease-[cubic-bezier(0.4,0,0.2,1)]
-          hover:-translate-y-0.5
-          disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
+          font-semibold uppercase tracking-[0.06em] [font-stretch:87.5%]
+          transition-colors duration-150
+          active:translate-y-px
+          disabled:opacity-50 disabled:cursor-not-allowed
           ${variantClasses[variant]}
           ${sizeClasses[size]}
           ${className}

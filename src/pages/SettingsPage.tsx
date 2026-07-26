@@ -142,31 +142,31 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="font-heading text-2xl text-text mb-1">Settings</h1>
-      <p className="text-sm text-text-secondary mb-6">
+      <h1 className="display-condensed text-[1.3rem] text-ink mb-1">Settings</h1>
+      <p className="text-sm text-ink-secondary mb-6">
         Toggle automation features on or off without a code deploy.
       </p>
 
       {loadError && (
-        <div className="mb-4 rounded-[10px] bg-coral/10 px-4 py-3 text-sm text-coral">
+        <div className="mb-4 rounded-[10px] bg-red-soft px-4 py-3 text-sm text-red">
           {loadError}
         </div>
       )}
 
       {/* Package Prices Card */}
       <Card className="mb-6">
-        <div className="px-6 py-4 border-b border-divider">
-          <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
+        <div className="px-6 py-4 border-b border-hairline">
+          <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">
             Package Prices
           </p>
-          <p className="text-xs text-text-secondary mt-0.5">
+          <p className="text-xs text-ink-secondary mt-0.5">
             Current prices for new patient assignments. Existing patient deals are not affected.
           </p>
         </div>
         <div className="px-6 py-4 space-y-4">
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className="block text-xs font-medium text-text-secondary mb-1">
+              <label className="block text-xs font-medium text-ink-secondary mb-1">
                 Standard ($)
               </label>
               <Input
@@ -175,11 +175,11 @@ export default function SettingsPage() {
                 step="0.01"
                 value={priceStandard}
                 onChange={(e) => setPriceStandard(e.target.value)}
-                className={!isValidPrice(priceStandard) && priceStandard !== "" ? "border-coral" : ""}
+                className={!isValidPrice(priceStandard) && priceStandard !== "" ? "border-red" : ""}
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-text-secondary mb-1">
+              <label className="block text-xs font-medium text-ink-secondary mb-1">
                 Premium ($)
               </label>
               <Input
@@ -188,11 +188,11 @@ export default function SettingsPage() {
                 step="0.01"
                 value={pricePremium}
                 onChange={(e) => setPricePremium(e.target.value)}
-                className={!isValidPrice(pricePremium) && pricePremium !== "" ? "border-coral" : ""}
+                className={!isValidPrice(pricePremium) && pricePremium !== "" ? "border-red" : ""}
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-text-secondary mb-1">
+              <label className="block text-xs font-medium text-ink-secondary mb-1">
                 VIP ($)
               </label>
               <Input
@@ -201,15 +201,15 @@ export default function SettingsPage() {
                 step="0.01"
                 value={priceVip}
                 onChange={(e) => setPriceVip(e.target.value)}
-                className={!isValidPrice(priceVip) && priceVip !== "" ? "border-coral" : ""}
+                className={!isValidPrice(priceVip) && priceVip !== "" ? "border-red" : ""}
               />
             </div>
           </div>
           {priceError && (
-            <p className="text-xs text-coral">{priceError}</p>
+            <p className="text-xs text-red">{priceError}</p>
           )}
           {priceSaved && (
-            <p className="text-xs text-teal">Prices saved successfully.</p>
+            <p className="text-xs text-olive-deep">Prices saved successfully.</p>
           )}
           <Button
             variant="primary"
@@ -226,7 +226,7 @@ export default function SettingsPage() {
       {/* Automation Toggles Card */}
       <Card className="divide-y divide-divider">
         <div className="px-6 py-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
+          <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">
             Automation Features
           </p>
         </div>
@@ -235,10 +235,10 @@ export default function SettingsPage() {
           return (
             <div key={key} className="flex items-center justify-between gap-4 px-6 py-4">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-text">{label}</p>
-                <p className="text-xs text-text-muted mt-0.5">{description}</p>
+                <p className="text-sm font-medium text-ink">{label}</p>
+                <p className="text-xs text-ink-muted mt-0.5">{description}</p>
                 {toggleErrors[key] && (
-                  <p className="text-xs text-coral mt-1">{toggleErrors[key]}</p>
+                  <p className="text-xs text-red mt-1">{toggleErrors[key]}</p>
                 )}
               </div>
               <button
@@ -247,8 +247,8 @@ export default function SettingsPage() {
                 aria-checked={!!enabled}
                 aria-label={label}
                 onClick={() => handleToggle(key)}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 ${
-                  enabled ? "bg-teal" : "bg-text-muted"
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 ${
+                  enabled ? "bg-olive-deep" : "bg-ink-muted"
                 }`}
               >
                 <span

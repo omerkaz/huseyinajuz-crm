@@ -16,7 +16,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
         {label && (
           <label
             htmlFor={id}
-            className="block text-[0.78rem] font-medium text-text-secondary"
+            className="block text-[0.65rem] font-semibold uppercase tracking-[0.08em] text-ink-secondary"
           >
             {label}
           </label>
@@ -25,15 +25,14 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           id={id}
           className={`
-            w-full px-3.5 py-2.5 text-[0.95rem]
-            bg-surface text-text
-            border-[1.5px] rounded-[10px]
-            outline-none transition-all duration-300
-            ease-[cubic-bezier(0.4,0,0.2,1)]
+            w-full px-3.5 py-2.5 text-[0.9rem]
+            bg-surface text-ink
+            border rounded-[6px]
+            outline-none transition-colors duration-150
             ${
               error
-                ? "border-coral focus:border-coral focus:ring-2 focus:ring-coral-glow"
-                : "border-divider focus:border-teal focus:ring-2 focus:ring-teal-glow"
+                ? "border-red focus:border-red focus:ring-2 focus:ring-red-soft"
+                : "border-hairline-strong focus:border-ink focus:ring-2 focus:ring-yellow"
             }
             ${className}
           `}
@@ -46,12 +45,12 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           {children}
         </select>
         {error && (
-          <p id={`${id}-error`} className="text-[0.75rem] text-coral font-medium">
+          <p id={`${id}-error`} className="text-[0.75rem] text-red font-medium">
             {error}
           </p>
         )}
         {hint && !error && (
-          <p id={`${id}-hint`} className="text-[0.7rem] text-text-muted">
+          <p id={`${id}-hint`} className="text-[0.7rem] text-ink-muted">
             {hint}
           </p>
         )}

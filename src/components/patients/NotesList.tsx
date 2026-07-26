@@ -79,8 +79,8 @@ export function NotesList({ patientId }: NotesListProps) {
   if (loading) {
     return (
       <div className="flex items-center gap-2 py-4">
-        <Loader2 className="h-4 w-4 animate-spin text-teal" />
-        <span className="text-sm text-text-secondary">Loading notes…</span>
+        <Loader2 className="h-4 w-4 animate-spin text-ink" />
+        <span className="text-sm text-ink-secondary">Loading notes…</span>
       </div>
     );
   }
@@ -107,32 +107,32 @@ export function NotesList({ patientId }: NotesListProps) {
       </div>
 
       {error && (
-        <p className="text-sm text-coral">{error}</p>
+        <p className="text-sm text-red">{error}</p>
       )}
 
       {/* Notes timeline */}
       {notes.length === 0 ? (
-        <p className="text-sm text-text-muted italic py-2">No notes yet.</p>
+        <p className="text-sm text-ink-muted italic py-2">No notes yet.</p>
       ) : (
         <ul className="space-y-3">
           {notes.map((note) => (
             <li
               key={note.id}
-              className="relative pl-4 border-l-2 border-divider"
+              className="relative pl-4 border-l-2 border-hairline"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-text whitespace-pre-wrap break-words">
+                  <p className="text-sm text-ink whitespace-pre-wrap break-words">
                     {note.content}
                   </p>
-                  <p className="text-xs text-text-muted mt-1">
+                  <p className="text-xs text-ink-muted mt-1">
                     {dateFormatter.format(new Date(note.created_at))}
                   </p>
                 </div>
                 <button
                   onClick={() => void handleDelete(note.id)}
                   disabled={deletingId === note.id}
-                  className="shrink-0 p-1 text-text-muted hover:text-coral transition-colors disabled:opacity-50"
+                  className="shrink-0 p-1 text-ink-muted hover:text-red transition-colors disabled:opacity-50"
                   title="Delete note"
                 >
                   {deletingId === note.id ? (

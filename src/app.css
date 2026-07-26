@@ -1,44 +1,67 @@
+/*
+  ── TRICHOSCOPE DAYLIGHT — direction contract ──
+  THESIS: The CRM is the practitioner's own instrument — trichoscopy charting
+  software in daylight. It refuses the generic SaaS admin (grey chrome, blue
+  accent, shadowed cards).
+  OWN-WORLD: Optical-white ground; one structural ink (caption navy #211A47)
+  for all text, rules, chrome; sticker-yellow #FEDE5C = attention, olive
+  #8E985E = growth, cyan = live, red = cold. Condensed Archivo headings, mono
+  tabular digits for every value. Circular calibrated lens frames; flat
+  hairline-ruled panels; sticker-rounded chips.
+  STORY: Hüseyin opens it, reads his practice like a device faceplate, and
+  the yellow dots tell him who needs him today.
+  FIRST VIEWPORT: Dashboard = readout strip + dot-marker lifecycle scale +
+  specimen-reading rows; compact ring dial beside the readouts.
+  FORM: Trichoscopy instrument UI (grounded candidate 6/7, seed 2a5c9c39);
+  staging = comp A faceplate + comp C card mini-scales + comp B ring, shrunk.
+*/
+
 @import "tailwindcss";
 
 @theme {
-  /* Warm Medical Trust Palette */
-  --color-bg: #FAF6F1;
-  --color-surface: #FFFDF9;
-  --color-text: #2D2A26;
-  --color-text-secondary: #7A756E;
-  --color-text-muted: #A8A29E;
-  --color-divider: rgba(0, 0, 0, 0.06);
+  /* ── Ground ── */
+  --color-bg: #FCFDFB;
+  --color-surface: #FFFFFF;
 
-  /* Accents */
-  --color-teal: #2A9D8F;
-  --color-teal-hover: #238B80;
-  --color-teal-glow: rgba(42, 157, 143, 0.12);
-  --color-coral: #E76F51;
-  --color-coral-glow: rgba(231, 111, 81, 0.10);
+  /* ── The one ink (caption navy) and its tints ── */
+  --color-ink: #211A47;
+  --color-ink-secondary: #575170;
+  --color-ink-muted: #757090;
+  --color-hairline: rgba(33, 26, 71, 0.16);
+  --color-hairline-strong: rgba(33, 26, 71, 0.38);
+  --color-ink-wash: rgba(33, 26, 71, 0.05);
 
-  /* Hero gradient */
-  --color-hero-dark: #1E1B18;
-  --color-hero-light: #2D2A26;
+  /* ── Functional color (sampled from the Instagram brand evidence) ── */
+  --color-yellow: #FEDE5C;        /* attention marker — "the yellow dot" */
+  --color-yellow-soft: #FFF3C4;   /* attention wash */
+  --color-olive: #8E985E;         /* growth marker (dots, fills) */
+  --color-olive-deep: #6C7643;    /* growth text/chip fill (AA on white) */
+  --color-olive-soft: #EEF0E2;    /* growth wash */
+  --color-cyan: #16BCD4;          /* live reading marker */
+  --color-cyan-deep: #0E7FA0;     /* live text (AA on white) */
+  --color-red: #B3301F;           /* cold / destructive */
+  --color-red-soft: #F9E7E4;      /* cold wash */
 
-  /* Typography */
-  --font-heading: "DM Serif Display", Georgia, serif;
-  --font-body: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  /* ── Typography ── */
+  --font-heading: "Archivo", -apple-system, system-ui, sans-serif;
+  --font-body: "Archivo", -apple-system, system-ui, sans-serif;
+  --font-mono: "Spline Sans Mono", ui-monospace, "SF Mono", monospace;
 
-  /* Shadows */
-  --shadow-warm: 0 2px 20px rgba(45, 42, 38, 0.06);
-  --shadow-warm-lg: 0 4px 30px rgba(45, 42, 38, 0.10);
+  /* ── Shape: bezel panels, sticker chips ── */
+  --radius-card: 8px;
+  --radius-inner: 6px;
+  --radius-chip: 8px;
 
-  /* Border radius */
-  --radius-card: 14px;
-  --radius-inner: 10px;
+  /* ── The single transient shadow (dropdowns/dialogs only) ── */
+  --shadow-float: 0 8px 24px rgba(33, 26, 71, 0.16);
 }
 
 /* ── Base ── */
 body {
   font-family: var(--font-body);
   background-color: var(--color-bg);
-  color: var(--color-text);
-  line-height: 1.65;
+  color: var(--color-ink);
+  line-height: 1.55;
   font-size: 0.9rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -46,26 +69,49 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
+  font-weight: 700;
+  font-stretch: 85%;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
 }
 
-/* ── Grain overlay ── */
-.grain {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.06;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 256px 256px;
+/* Instrument reading: any number the practitioner reads */
+.reading {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
-/* ── Vignette ── */
-.vignette {
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 50%, rgba(30, 27, 24, 0.04) 100%);
+/* Condensed display voice (page titles, column heads) */
+.display-condensed {
+  font-family: var(--font-heading);
+  font-stretch: 75%;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+/* Micro-label on scales, axes, chips */
+.scale-label {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+::selection {
+  background: var(--color-yellow);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+/* Form fields carry their own focus ring (ink border + yellow ring) */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
 }

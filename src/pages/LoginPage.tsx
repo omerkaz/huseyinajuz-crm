@@ -3,6 +3,51 @@ import { useNavigate } from "react-router";
 import { Button, Card, Input } from "@/components/ui";
 import { useAuth } from "@/context/auth";
 
+/** Calibrated lens mark — the brand's circular badge, drawn as an instrument. */
+function LensMark() {
+  const ticks = Array.from({ length: 12 }, (_, i) => {
+    const angle = (i * 30 * Math.PI) / 180;
+    const isCardinal = i % 3 === 0;
+    const r1 = isCardinal ? 26.5 : 28;
+    const cx = 32;
+    const cy = 32;
+    return (
+      <line
+        key={i}
+        x1={cx + r1 * Math.sin(angle)}
+        y1={cy - r1 * Math.cos(angle)}
+        x2={cx + 30 * Math.sin(angle)}
+        y2={cy - 30 * Math.cos(angle)}
+        stroke="currentColor"
+        strokeWidth={isCardinal ? 1.5 : 1}
+      />
+    );
+  });
+
+  return (
+    <svg viewBox="0 0 64 64" className="mx-auto mb-5 h-16 w-16 text-ink" aria-hidden="true">
+      <circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      {ticks}
+      <text
+        x="32"
+        y="33"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="currentColor"
+        style={{
+          fontFamily: "var(--font-heading)",
+          fontStretch: "75%",
+          fontWeight: 700,
+          fontSize: "17px",
+          letterSpacing: "0.02em",
+        }}
+      >
+        HA
+      </text>
+    </svg>
+  );
+}
+
 export default function LoginPage() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
@@ -29,10 +74,14 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        {/* Brand heading */}
-        <h1 className="font-heading text-[2.25rem] text-text text-center mb-8 leading-tight">
-          Patient <span className="text-teal">CRM</span>
+        {/* Instrument power-on */}
+        <LensMark />
+        <h1 className="display-condensed text-center text-[1.6rem] text-ink">
+          Hüseyin Ajuz
         </h1>
+        <p className="scale-label mb-8 mt-1 text-center text-ink-secondary">
+          Patient Instrument
+        </p>
 
         <Card hover={false}>
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -60,7 +109,7 @@ export default function LoginPage() {
             {error && (
               <p
                 role="alert"
-                className="text-[0.8rem] text-coral font-medium bg-coral-glow rounded-lg px-3 py-2"
+                className="rounded-[6px] bg-red-soft px-3 py-2 text-[0.8rem] font-medium text-red"
               >
                 {error}
               </p>
@@ -77,8 +126,8 @@ export default function LoginPage() {
           </form>
         </Card>
 
-        <p className="text-center text-text-muted text-[0.7rem] mt-6">
-          Hüseyin Ajuz — Physiotherapy &amp; Osteopathy
+        <p className="scale-label mt-6 text-center text-ink-muted">
+          Hüseyin Ajuz — Trichology
         </p>
       </div>
     </div>

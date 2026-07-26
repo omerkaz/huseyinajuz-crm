@@ -224,8 +224,8 @@ export default function PatientFormPage() {
   if (loading || settingsLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-teal" />
-        <span className="ml-3 text-text-secondary">Loading…</span>
+        <Loader2 className="h-6 w-6 animate-spin text-ink" />
+        <span className="ml-3 text-ink-secondary">Loading…</span>
       </div>
     );
   }
@@ -235,13 +235,13 @@ export default function PatientFormPage() {
       <div className="space-y-4">
         <button
           onClick={() => void navigate("/patients")}
-          className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-ink-secondary hover:text-ink transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to patients
         </button>
         <Card hover={false}>
-          <p className="text-coral">{fetchError}</p>
+          <p className="text-red">{fetchError}</p>
         </Card>
       </div>
     );
@@ -256,18 +256,18 @@ export default function PatientFormPage() {
       <div className="flex items-center gap-4">
         <button
           onClick={() => void navigate("/patients")}
-          className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-ink-secondary hover:text-ink transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </button>
-        <h1 className="font-heading text-2xl text-text">
+        <h1 className="display-condensed text-[1.3rem] text-ink">
           {isEdit ? "Edit Patient" : "New Patient"}
         </h1>
       </div>
 
       {settingsMissing && (
-        <div className="rounded-lg bg-coral/10 border border-coral/30 px-4 py-3 text-sm text-coral">
+        <div className="rounded-lg bg-red-soft border border-red/30 px-4 py-3 text-sm text-red">
           Could not load package prices. Package assignment is disabled until settings load successfully.
         </div>
       )}
@@ -277,7 +277,7 @@ export default function PatientFormPage() {
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
           {/* Submit error banner */}
           {errors.submit && (
-            <div className="rounded-lg bg-coral/10 border border-coral/30 px-4 py-3 text-sm text-coral">
+            <div className="rounded-lg bg-red-soft border border-red/30 px-4 py-3 text-sm text-red">
               {errors.submit}
             </div>
           )}
@@ -313,7 +313,7 @@ export default function PatientFormPage() {
 
             {/* Phone — country code + number */}
             <div className="md:col-span-2">
-              <label className="block text-[0.78rem] font-medium text-text-secondary mb-1.5">
+              <label className="block text-[0.78rem] font-medium text-ink-secondary mb-1.5">
                 Phone Number
               </label>
               <div className="grid grid-cols-[160px_1fr] gap-3">
@@ -378,7 +378,7 @@ export default function PatientFormPage() {
                   error={errors.agreedPrice}
                   placeholder="0.00"
                 />
-                <p className="text-xs text-text-muted mt-1">
+                <p className="text-xs text-ink-muted mt-1">
                   Auto-filled from current price. Edit for custom deals.
                 </p>
               </div>
@@ -386,7 +386,7 @@ export default function PatientFormPage() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-3 pt-4 border-t border-divider">
+          <div className="flex items-center gap-3 pt-4 border-t border-hairline">
             <Button
               type="submit"
               loading={submitting}

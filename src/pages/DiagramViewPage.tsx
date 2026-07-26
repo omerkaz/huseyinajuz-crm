@@ -11,8 +11,8 @@ export default function DiagramViewPage() {
     return (
       <div className="mx-auto max-w-lg">
         <Card hover={false} className="text-center">
-          <h1 className="font-heading text-xl text-text">Diagram not found</h1>
-          <p className="mt-2 text-sm text-text-secondary">
+          <h1 className="display-condensed text-[1.1rem] text-ink">Diagram not found</h1>
+          <p className="mt-2 text-sm text-ink-secondary">
             No diagram exists at this address — it may have been renamed or
             removed.
           </p>
@@ -33,16 +33,16 @@ export default function DiagramViewPage() {
         <div>
           <Link
             to="/diagrams"
-            className="inline-flex items-center gap-1.5 text-sm text-text-secondary transition-colors hover:text-teal"
+            className="inline-flex items-center gap-1.5 text-sm text-ink-secondary transition-colors hover:text-ink"
           >
             <ArrowLeft className="h-4 w-4" />
             Diagrams
           </Link>
-          <h1 className="mt-1 font-heading text-2xl text-text">
+          <h1 className="mt-1 display-condensed text-[1.3rem] text-ink">
             {diagram.title}
           </h1>
         </div>
-        <p className="hidden pt-1 text-[11px] uppercase tracking-[0.18em] text-text-muted sm:block">
+        <p className="hidden pt-1 text-[11px] uppercase tracking-[0.18em] text-ink-muted sm:block">
           {diagram.kind}
         </p>
       </div>
@@ -56,7 +56,7 @@ export default function DiagramViewPage() {
         srcDoc={diagram.html}
         title={diagram.title}
         sandbox="allow-scripts"
-        className="h-[calc(100dvh-15rem)] min-h-[420px] w-full rounded-[14px] border border-divider bg-bg shadow-warm"
+        className="h-[calc(100dvh-15rem)] min-h-[420px] w-full rounded-[8px] border border-hairline bg-bg"
       />
     </div>
   );

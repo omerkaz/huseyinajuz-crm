@@ -24,8 +24,8 @@ export function StateTransitionButton({
 
   if (validNext.length === 0) {
     return (
-      <p className="text-sm text-text-muted italic">
-        No further transitions available.
+      <p className="text-[0.8rem] text-ink-muted">
+        End of scale — no further transitions.
       </p>
     );
   }
@@ -74,11 +74,11 @@ export function StateTransitionButton({
           disabled={loading || !targetState}
           onClick={() => void handleTransition()}
         >
-          Transition
+          Move
         </Button>
       </div>
       {error && (
-        <p className="text-sm text-coral">{error}</p>
+        <p className="text-[0.8rem] font-medium text-red">{error}</p>
       )}
     </div>
   );
