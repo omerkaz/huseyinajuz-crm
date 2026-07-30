@@ -63,6 +63,13 @@ not "blood → DNA → hair" aesthetic order.
   (canvas snapshot or SVG plate) required for `prefers-reduced-motion` and
   low-end mobile.
 
+## Extensions
+
+- **SEED-003** (2026-07-30): scene & interaction ontology for the **B4 heal
+  exhibit** — interactive blood panel → drip → strand field heals. Decides
+  placement (B4, not hero), marker→channel mapping, drip/ripple interaction,
+  realism upgrades, performance tiers. Read it before touching the playground.
+
 ## Open questions
 
 1. Hüseyin's real numbers for L1 (blocks copywriting, not playground work).
