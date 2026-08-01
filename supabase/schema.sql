@@ -741,3 +741,99 @@ BEGIN
 END;
 $$;
 SELECT cron.schedule('auto-cold-leads', '0 10 * * *', 'SELECT auto_cold_leads();');
+
+-- ============================================================
+-- v1.2 — Funnel analytics: state transition log
+-- ============================================================
+-- Append-only history of lifecycle_state changes, written ONLY by
+-- triggers on patients. Captures all three state writers without app
+-- changes: browser (transitionState/updatePatient), auto_cold_leads
+-- cron (runs as postgres), and the ManyChat webhook (service role).
+-- Browser access is read-only via RLS.
+--
+-- Design notes:
+--   * from_state NULL = funnel entry (patient creation, or backfill seed).
+--   * seq (identity) is a deterministic sort tiebreak — now() is
+--     transaction-scoped, so bulk updates can share changed_at.
+--   * If the log insert fails, the parent patient write fails too —
+--     intentional: history must not silently diverge from state.
+
+create table if not exists patient_state_transitions (
+  id          uuid primary key default gen_random_uuid(),
+  seq         bigint generated always as identity,
+  patient_id  uuid not null references patients(id) on delete cascade,
+  from_state  text
+    check (from_state in (
+      'lead', 'contacted', 'awaiting_blood_test', 'active_treatment',
+      'week_6_checkin', 'end_review', 'extended_support', 'completed', 'cold'
+    )),
+  to_state    text not null
+    check (to_state in (
+      'lead', 'contacted', 'awaiting_blood_test', 'active_treatment',
+      'week_6_checkin', 'end_review', 'extended_support', 'completed', 'cold'
+    )),
+  changed_at  timestamptz not null default now(),
+  created_by  uuid not null references auth.users(id)
+);
+
+create index if not exists idx_pst_patient_time
+  on patient_state_transitions(patient_id, changed_at, seq);
+
+alter table patient_state_transitions enable row level security;
+
+-- Read-only for the practitioner. No insert/update/delete policies:
+-- writes happen exclusively through the SECURITY DEFINER trigger below.
+create policy "Users can view own patient state transitions"
+  on patient_state_transitions for select using (auth.uid() = created_by);
+
+-- SECURITY DEFINER so the insert bypasses RLS regardless of which role
+-- performs the patient write (authenticated browser, postgres cron,
+-- service-role webhook). search_path pinned + schema-qualified names
+-- guard against search-path hijacking.
+create or replace function log_state_transition()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if tg_op = 'INSERT' then
+    insert into public.patient_state_transitions
+      (patient_id, from_state, to_state, changed_at, created_by)
+    values (new.id, null, new.lifecycle_state, now(), new.created_by);
+  elsif old.lifecycle_state is distinct from new.lifecycle_state then
+    insert into public.patient_state_transitions
+      (patient_id, from_state, to_state, changed_at, created_by)
+    values (new.id, old.lifecycle_state, new.lifecycle_state, now(), new.created_by);
+  end if;
+  return new;
+end;
+$$;
+
+-- Direct calls are never needed — EXECUTE is only checked at trigger
+-- creation time, so revoking is safe and closes the surface.
+revoke execute on function log_state_transition() from public, anon, authenticated;
+
+drop trigger if exists patients_log_state_insert on patients;
+create trigger patients_log_state_insert
+  after insert on patients
+  for each row execute function log_state_transition();
+
+drop trigger if exists patients_log_state_update on patients;
+create trigger patients_log_state_update
+  after update of lifecycle_state on patients
+  for each row
+  when (old.lifecycle_state is distinct from new.lifecycle_state)
+  execute function log_state_transition();
+
+-- Backfill: one seed row per pre-existing patient. changed_at uses
+-- state_changed_at (when they entered their CURRENT state) so
+-- time-in-current-stage stays accurate. Cohort month deliberately keys
+-- on patients.created_at in app code, so seed imprecision cannot
+-- pollute cohorts. Idempotent via NOT EXISTS.
+insert into patient_state_transitions (patient_id, from_state, to_state, changed_at, created_by)
+select p.id, null, p.lifecycle_state, coalesce(p.state_changed_at, p.created_at), p.created_by
+  from patients p
+ where not exists (
+   select 1 from patient_state_transitions t where t.patient_id = p.id
+ );
