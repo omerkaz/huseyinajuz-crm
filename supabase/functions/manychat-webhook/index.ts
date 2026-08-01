@@ -163,37 +163,85 @@ Deno.serve(async (req: Request) => {
 
   const patientRecord = { ...patientData, created_by: resolvedPractitionerId };
 
-  try {
-    // Upsert: insert new or update existing by manychat_id unique constraint
-    const { data, error } = await supabase
-      .from("patients")
-      .upsert(patientRecord, { onConflict: "manychat_id" })
-      .select("id, manychat_id")
-      .single();
+  const manychatIdStr = String(manychatId);
 
-    if (error) {
-      console.error("[manychat-webhook] DB upsert failed:", error.message, error.details);
+  try {
+    // Look up the existing patient first. A blind upsert would overwrite
+    // lifecycle_state (resetting progressed patients back to 'lead') and
+    // clobber practitioner-entered data with ManyChat placeholders — and
+    // since v1.2 it would also pollute the patient_state_transitions log.
+    const { data: existing, error: lookupError } = await supabase
+      .from("patients")
+      .select("id")
+      .eq("manychat_id", manychatIdStr)
+      .maybeSingle();
+
+    if (lookupError) {
+      console.error("[manychat-webhook] Lookup failed:", lookupError.message);
       return jsonResponse({ error: "Failed to create patient" }, 500);
     }
 
-    // Determine if this was a create or update by checking if created_at ~ now
-    // The upsert always returns the row, so we query to check.
-    // Supabase upsert with onConflict returns the row regardless — we use a
-    // secondary check: query the patient's created_at vs updated_at.
-    const { data: patient } = await supabase
-      .from("patients")
-      .select("created_at, updated_at, email, first_name, last_name")
-      .eq("id", data.id)
-      .single();
+    let patientId = existing?.id ?? null;
+    let isNew = false;
 
-    const isNew = patient && patient.created_at === patient.updated_at;
+    if (!patientId) {
+      const { data: inserted, error: insertError } = await supabase
+        .from("patients")
+        .insert(patientRecord)
+        .select("id")
+        .single();
+
+      if (insertError) {
+        // 23505: a concurrent re-trigger inserted between our lookup and
+        // this insert — recover by falling through to the update path.
+        if (insertError.code === "23505") {
+          const { data: raced } = await supabase
+            .from("patients")
+            .select("id")
+            .eq("manychat_id", manychatIdStr)
+            .maybeSingle();
+          patientId = raced?.id ?? null;
+        }
+        if (!patientId) {
+          console.error("[manychat-webhook] DB insert failed:", insertError.message, insertError.details);
+          return jsonResponse({ error: "Failed to create patient" }, 500);
+        }
+      } else {
+        patientId = inserted.id;
+        isNew = true;
+      }
+    }
+
+    if (!isNew) {
+      // Update only fields ManyChat sent real data for. Never touch
+      // lifecycle_state, names, or created_by on existing patients —
+      // the practitioner's records and pipeline progress win.
+      const updates: Record<string, unknown> = {};
+      if (email) updates.email = email;
+      if (phoneNumber !== "unknown") updates.phone_number = phoneNumber;
+      if (instagramUsername) updates.instagram_username = instagramUsername;
+      if (gender) updates.gender = gender;
+
+      if (Object.keys(updates).length > 0) {
+        const { error: updateError } = await supabase
+          .from("patients")
+          .update(updates)
+          .eq("id", patientId);
+
+        if (updateError) {
+          console.error("[manychat-webhook] DB update failed:", updateError.message, updateError.details);
+          return jsonResponse({ error: "Failed to update patient" }, 500);
+        }
+      }
+    }
+
     const status = isNew ? "created" : "updated";
     const httpStatus = isNew ? 201 : 200;
 
-    console.log(`[manychat-webhook] Patient ${status}: id=${data.id}, manychat_id=${data.manychat_id}`);
+    console.log(`[manychat-webhook] Patient ${status}: id=${patientId}, manychat_id=${manychatIdStr}`);
 
     // Send welcome email for new patients who have an email address
-    if (isNew && patient && patient.email) {
+    if (isNew && email) {
       try {
         const welcomeRes = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
           method: "POST",
@@ -203,17 +251,17 @@ Deno.serve(async (req: Request) => {
           },
           body: JSON.stringify({
             feature: "welcome_email",
-            to: patient.email,
+            to: email,
             subject: "Welcome — Hüseyin Ajuz Hair Loss Consultation",
-            html: `<p>Dear ${patient.first_name},</p><p>Thank you for registering with Hüseyin Ajuz. We will be in touch shortly to guide you through your personalised hair loss treatment journey.</p><p>Warm regards,<br>Hüseyin Ajuz</p>`,
-            text: `Dear ${patient.first_name}, Thank you for registering with Hüseyin Ajuz. We will be in touch shortly. Warm regards, Hüseyin Ajuz`,
+            html: `<p>Dear ${firstName},</p><p>Thank you for registering with Hüseyin Ajuz. We will be in touch shortly to guide you through your personalised hair loss treatment journey.</p><p>Warm regards,<br>Hüseyin Ajuz</p>`,
+            text: `Dear ${firstName}, Thank you for registering with Hüseyin Ajuz. We will be in touch shortly. Warm regards, Hüseyin Ajuz`,
           }),
         });
         if (!welcomeRes.ok) {
           const errText = await welcomeRes.text();
           console.error(`[manychat-webhook] send-email failed: status=${welcomeRes.status} body=${errText}`);
         } else {
-          console.log(`[manychat-webhook] Welcome email dispatched for patient id=${data.id}`);
+          console.log(`[manychat-webhook] Welcome email dispatched for patient id=${patientId}`);
         }
       } catch (emailErr: unknown) {
         const emailMsg = emailErr instanceof Error ? emailErr.message : "Unknown error";
@@ -222,7 +270,7 @@ Deno.serve(async (req: Request) => {
     }
 
     return jsonResponse(
-      { status, patient_id: data.id, manychat_id: data.manychat_id },
+      { status, patient_id: patientId, manychat_id: manychatIdStr },
       httpStatus,
     );
   } catch (err: unknown) {
