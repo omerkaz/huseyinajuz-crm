@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Users,
   Kanban,
+  Funnel,
   CreditCard,
   Settings,
   Menu,
@@ -14,6 +15,7 @@ const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/patients", label: "Patients", icon: Users },
   { to: "/pipeline", label: "Pipeline", icon: Kanban },
+  { to: "/funnel", label: "Funnel", icon: Funnel },
   { to: "/payments", label: "Payments", icon: CreditCard },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;

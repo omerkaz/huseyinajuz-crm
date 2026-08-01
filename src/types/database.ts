@@ -92,6 +92,25 @@ export type PatientInsert = Omit<Patient, "id" | "created_at" | "updated_at" | "
 };
 export type PatientUpdate = Partial<Omit<Patient, "id" | "created_at" | "updated_at" | "created_by">>;
 
+// ── Patient State Transition ──
+
+/**
+ * Append-only lifecycle history row, written exclusively by Postgres
+ * triggers on `patients` (see schema.sql, v1.2 funnel analytics).
+ * `from_state: null` marks a funnel entry — patient creation or a
+ * backfill seed for patients that predate the log.
+ */
+export interface StateTransition {
+  id: string;
+  /** Identity column — deterministic sort tiebreak when changed_at ties. */
+  seq: number;
+  patient_id: string;
+  from_state: LifecycleState | null;
+  to_state: LifecycleState;
+  changed_at: string;
+  created_by: string;
+}
+
 // ── Patient Note ──
 
 export interface PatientNote {

@@ -45,7 +45,9 @@ src/
 │   ├── notes.ts               # CRUD for patient notes
 │   ├── attachments.ts         # Upload/download/delete with Storage + rollback
 │   ├── phone.ts               # 30 country codes, validation, formatting
-│   └── dashboardMetrics.ts    # computeMetrics() pure function + formatUSD
+│   ├── dashboardMetrics.ts    # computeMetrics() pure function + formatUSD
+│   ├── transitions.ts         # Paginated fetch of patient_state_transitions
+│   └── funnelMetrics.ts       # computeFunnel() pure function (conversion, cohorts)
 ├── context/
 │   └── auth.tsx               # AuthProvider + useAuth() hook, INITIAL_SESSION gate
 ├── routes/
@@ -64,6 +66,7 @@ src/
 │   ├── PatientFormPage.tsx    # Create + edit (dual-mode via route param)
 │   ├── PatientDetailPage.tsx  # Info grid, state transitions, notes, payments, files
 │   ├── PipelinePage.tsx       # Kanban columns for 9 lifecycle stages
+│   ├── FunnelPage.tsx         # Conversion funnel, cohorts, drop-off analytics
 │   └── PaymentsPage.tsx       # Filterable payment list
 supabase/
 ├── schema.sql                 # Tables, RLS, indexes, trigger
@@ -210,6 +213,9 @@ Domain components import directly: `@/components/patients/StateTransitionButton`
 - **payments** — amount (numeric 10,2), currency, method, date, reference
 - **practitioner_settings** — single row (D014): 7 email toggles + 3 tier prices
 - **email_send_log** — at-least-once reminder accounting (patient_id, feature, sent_at)
+- **patient_state_transitions** — append-only lifecycle history, written ONLY by
+  SECURITY DEFINER triggers on patients (captures app, cron, and webhook writers).
+  `from_state IS NULL` = funnel entry or backfill seed. Browser access read-only.
 
 All have RLS enabled. `updated_at` trigger auto-fires on patients.
 
@@ -225,7 +231,10 @@ All have RLS enabled. `updated_at` trigger auto-fires on patients.
 
 - **Path:** `supabase/functions/manychat-webhook/index.ts`
 - **Auth:** Bearer token or `?secret=` query param, validated against `WEBHOOK_SECRET` env var
-- **Behavior:** Upserts patient by `manychat_id` unique constraint. New patients get `lifecycle_state: 'lead'`.
+- **Behavior:** Lookup-first by `manychat_id` (NOT a blind upsert — re-triggers must
+  never reset `lifecycle_state` or clobber practitioner data with placeholders).
+  New patients insert with `lifecycle_state: 'lead'`; existing patients only get
+  contact fields updated when ManyChat sent real values.
 - **Required env vars:** `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `WEBHOOK_SECRET`, `PRACTITIONER_USER_ID`
 
 ### send-email (v2, deployed)
@@ -265,6 +274,7 @@ Edge Function env vars (set via `supabase secrets set`):
 | `/patients/:id` | PatientDetailPage | Protected |
 | `/patients/:id/edit` | PatientFormPage (edit) | Protected |
 | `/pipeline` | PipelinePage | Protected |
+| `/funnel` | FunnelPage | Protected |
 | `/payments` | PaymentsPage | Protected |
 | `/settings` | SettingsPage (M002) | Protected |
 

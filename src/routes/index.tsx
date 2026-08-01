@@ -8,6 +8,7 @@ import PatientFormPage from "@/pages/PatientFormPage";
 import PatientDetailPage from "@/pages/PatientDetailPage";
 import PaymentsPage from "@/pages/PaymentsPage";
 import PipelinePage from "@/pages/PipelinePage";
+import FunnelPage from "@/pages/FunnelPage";
 import SettingsPage from "@/pages/SettingsPage";
 import DiagramsPage from "@/pages/DiagramsPage";
 import DiagramViewPage from "@/pages/DiagramViewPage";
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
           {
             path: "/pipeline",
             element: <PipelinePage />,
+          },
+          {
+            path: "/funnel",
+            element: <FunnelPage />,
           },
           {
             path: "/payments",
