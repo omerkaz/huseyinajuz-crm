@@ -38,8 +38,9 @@ function computePaymentStatusMap(
     const totalPaid = byPatient.get(pt.id) ?? 0;
 
     if (pt.package_type === null) {
-      // D008: no package → any payment = paid, none = unpaid
-      statusMap.set(pt.id, totalPaid > 0 ? "paid" : "unpaid");
+      // D008: no package → any payment = paid. With no payment either,
+      // there's nothing to report — skip the badge (leads shouldn't scream "Unpaid")
+      if (totalPaid > 0) statusMap.set(pt.id, "paid");
     } else if (pt.agreed_price === null) {
       // Fallback (shouldn't happen after migration)
       statusMap.set(pt.id, totalPaid > 0 ? "paid" : "unpaid");

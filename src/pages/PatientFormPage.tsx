@@ -32,15 +32,16 @@ export default function PatientFormPage() {
   const [phoneCountryCode, setPhoneCountryCode] = useState("+90");
   const [phone, setPhone] = useState("");
   const [language, setLanguage] = useState<LanguageCode>("tr");
-  const [packageType, setPackageType] = useState<PackageType | "">("standard");
+  // Package is assigned later (edit mode / patient detail) — new patients start clean
+  const [packageType, setPackageType] = useState<PackageType | "">("");
   // agreed_price — string state for input (A4), shown when package selected
   const [agreedPriceStr, setAgreedPriceStr] = useState("");
   // Track original package (for detecting change in edit mode)
   const [originalPackage, setOriginalPackage] = useState<PackageType | null>(null);
 
-  // ── Settings state (A2: need prices for snapshot) ──
+  // ── Settings state (A2: need prices for snapshot; edit mode only) ──
   const [settings, setSettings] = useState<Pick<PractitionerSettings, "price_standard" | "price_premium" | "price_vip"> | null>(null);
-  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [settingsLoading, setSettingsLoading] = useState(isEdit);
 
   // ── UI state ──
   const [loading, setLoading] = useState(isEdit);
@@ -48,9 +49,9 @@ export default function PatientFormPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // ── Load settings on mount ──
+  // ── Load settings on mount (edit mode only — create has no package section) ──
   useEffect(() => {
-    if (!user) return;
+    if (!user || !isEdit) return;
     setSettingsLoading(true);
     getSettings(user.id).then(({ data }) => {
       if (data) {
@@ -62,7 +63,7 @@ export default function PatientFormPage() {
       }
       setSettingsLoading(false);
     });
-  }, [user]);
+  }, [user, isEdit]);
 
   // ── Auto-fill agreed price when package changes ──
   function handlePackageChange(newPkg: PackageType | "") {
@@ -247,8 +248,8 @@ export default function PatientFormPage() {
     );
   }
 
-  // A2: disable form if settings failed to load
-  const settingsMissing = !settings;
+  // A2: disable form if settings failed to load (edit mode only)
+  const settingsMissing = isEdit && !settings;
 
   return (
     <div className="space-y-6">
@@ -350,38 +351,44 @@ export default function PatientFormPage() {
               ))}
             </Select>
 
-            {/* Package Type — disabled if settings unavailable (A2) */}
-            <Select
-              label="Package Type"
-              value={packageType}
-              onChange={(e) => handlePackageChange(e.target.value as PackageType | "")}
-              disabled={settingsMissing}
-            >
-              <option value="">None</option>
-              {PACKAGE_TYPES.map((p) => (
-                <option key={p} value={p}>
-                  {p.charAt(0).toUpperCase() + p.slice(1)}
-                </option>
-              ))}
-            </Select>
+            {/* Package + price live in edit mode only — new patients are created
+                without payment info; status is managed from the patient detail page */}
+            {isEdit && (
+              <>
+                {/* Package Type — disabled if settings unavailable (A2) */}
+                <Select
+                  label="Package Type"
+                  value={packageType}
+                  onChange={(e) => handlePackageChange(e.target.value as PackageType | "")}
+                  disabled={settingsMissing}
+                >
+                  <option value="">None</option>
+                  {PACKAGE_TYPES.map((p) => (
+                    <option key={p} value={p}>
+                      {p.charAt(0).toUpperCase() + p.slice(1)}
+                    </option>
+                  ))}
+                </Select>
 
-            {/* Agreed Price — shown only when package selected */}
-            {packageType && (
-              <div>
-                <Input
-                  label="Agreed Price ($)"
-                  type="number"
-                  min="1"
-                  step="0.01"
-                  value={agreedPriceStr}
-                  onChange={(e) => setAgreedPriceStr(e.target.value)}
-                  error={errors.agreedPrice}
-                  placeholder="0.00"
-                />
-                <p className="text-xs text-ink-muted mt-1">
-                  Auto-filled from current price. Edit for custom deals.
-                </p>
-              </div>
+                {/* Agreed Price — shown only when package selected */}
+                {packageType && (
+                  <div>
+                    <Input
+                      label="Agreed Price ($)"
+                      type="number"
+                      min="1"
+                      step="0.01"
+                      value={agreedPriceStr}
+                      onChange={(e) => setAgreedPriceStr(e.target.value)}
+                      error={errors.agreedPrice}
+                      placeholder="0.00"
+                    />
+                    <p className="text-xs text-ink-muted mt-1">
+                      Auto-filled from current price. Edit for custom deals.
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
