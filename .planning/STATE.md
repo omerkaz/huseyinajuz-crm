@@ -29,7 +29,15 @@ send-email v4 DEPLOYED to live (function ACTIVE, 401 on unauthenticated).
 Phase 16 not yet closed: real-inbox render checks pending, and an **email
 style elegance pass is still needed** — current shell is a functional
 baseline, not the final visual quality (must land before Phase 22 templates).
-Next code-ready work: v1.3 Phase 18 (SRC-01); email elegance pass ride-along
+Phase 18 (SRC-01) DONE 2026-08-11: 4 commits, migration applied to live
+(11 patients backfilled, 0 NULLs), manychat-webhook v7 deployed, smoke test
+201 → source='manychat' verified → test row cleaned up.
+⚠️ ANOMALY found during backfill: DB has ZERO patients with manychat_id,
+yet the CRM Lead Sync automation shows 25 runs (2026-08-10 inventory).
+Webhook chain verified healthy end-to-end — so either rows were deleted
+in the CRM, or the flow's External Request step fails on ManyChat's side
+(stale secret in flow config?). Needs investigation — board card filed.
+Next code-ready work: v1.3 Phase 19 (SURV-01..03); email elegance pass ride-along
 
 ## Phase Status
 

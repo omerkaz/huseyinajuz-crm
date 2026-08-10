@@ -113,7 +113,7 @@
 
 ### Lead Source (SRC)
 
-- [ ] **SRC-01**: Every patient carries a first-touch, immutable `source`
+- [x] **SRC-01**: Every patient carries a first-touch, immutable `source`
       (`manychat | landing_page | manual`) — DB CHECK + as-const union, backfill
       by `manychat_id` presence, patients list filter, funnel segmentation.
 
