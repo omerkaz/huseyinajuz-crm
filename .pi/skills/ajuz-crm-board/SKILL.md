@@ -44,6 +44,9 @@ node .pi/skills/ajuz-crm-board/scripts/board.js move "MAIL-01" --status "In deve
 # Append a progress note to a card body
 node .pi/skills/ajuz-crm-board/scripts/board.js append "MAIL-01" --body "DNS records added, awaiting verification."
 
+# Replace a card's keywords ("" clears)
+node .pi/skills/ajuz-crm-board/scripts/board.js retag "MAIL-01" --keywords "v1.2,Email,Shipped"
+
 # Archive a card (reversible via Notion Trash)
 node .pi/skills/ajuz-crm-board/scripts/board.js archive "Chore: Wire ESLint"
 ```
@@ -109,6 +112,6 @@ node .pi/skills/ajuz-crm-board/scripts/docs.js archive "Old notes"
 ```
 scripts/
 ├── lib.js      # shared: auth, api(), pagination, title matching, body↔blocks
-├── board.js    # kanban commands: list show add move append archive
+├── board.js    # kanban commands: list show add move append retag archive
 └── docs.js     # Document Hub commands: list show add append tag archive
 ```

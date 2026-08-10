@@ -99,6 +99,18 @@ async function cmdAppend(args) {
   console.log(`appended to: ${titleOf(card)}`);
 }
 
+async function cmdRetag(args) {
+  const [query] = args._;
+  if (!query || args.keywords === undefined)
+    fail('usage: board.js retag <name-query> --keywords "a,b" ("" clears)');
+  const card = await findCard(query);
+  const keywords = args.keywords.split(",").map((k) => k.trim()).filter(Boolean);
+  await api("PATCH", `/pages/${card.id}`, {
+    properties: { "AI keywords": { multi_select: keywords.map((k) => ({ name: k })) } },
+  });
+  console.log(`retagged: ${titleOf(card)} [${keywords.join(", ") || "—"}]`);
+}
+
 async function cmdArchive(args) {
   const [query] = args._;
   if (!query) fail("usage: board.js archive <name-query>");
@@ -107,7 +119,7 @@ async function cmdArchive(args) {
   console.log(`archived: ${titleOf(card)} (recoverable from Notion Trash)`);
 }
 
-const commands = { list: cmdList, show: cmdShow, add: cmdAdd, move: cmdMove, append: cmdAppend, archive: cmdArchive };
+const commands = { list: cmdList, show: cmdShow, add: cmdAdd, move: cmdMove, append: cmdAppend, retag: cmdRetag, archive: cmdArchive };
 
 const [cmd, ...rest] = process.argv.slice(2);
 if (!cmd || !commands[cmd]) {
@@ -118,6 +130,7 @@ if (!cmd || !commands[cmd]) {
       [--keywords a,b] [--body "text"]
   move <name-query> --status "Done"             Move a card to a column
   append <name-query> --body "text"             Append text to a card
+  retag <name-query> --keywords "a,b"           Replace a card's keywords ("" clears)
   archive <name-query>                          Archive a card (reversible)
 
 Body text: one block per line — "## " heading, "- " bullet, "[ ] " to-do.
