@@ -47,6 +47,20 @@ Next code-ready work: Phase 16 (Email Design System — unblocked)
 - Auth user: `mrhus@huseyinacuz.com` (UUID `a0e60f0f-77f9-417f-9c74-9aa4c285cf6b`)
 - Repo `main` in sync with origin; build passes
 
+## ManyChat Acquisition ACTIVATED (2026-08-01)
+
+- ManyChat automation **"CRM Lead Sync"** set LIVE (flow builder, account fb4605315):
+  trigger `Contact Event → New contact created` → action `Make External Request`
+  POST → `manychat-webhook` Edge Function, `Authorization: Bearer <WEBHOOK_SECRET>`,
+  body = Full Contact Data (top-level `id`/`first_name`/`last_name`/`email`/`phone`/
+  `ig_username`/`gender`/`language` match the webhook contract; extras ignored)
+- Test Request verified: 201 `{"status":"created","manychat_id":"314573794"}`;
+  DB row confirmed (Ali Rana, lifecycle `lead`, correct `created_by` attribution)
+- Covers ALL entry points (24 auto-DM flows + future ones + TikTok) — no per-flow edits
+- Only contacts created AFTER activation sync; the 12,809 pre-existing contacts do not
+  (backfill would be a separate task). IG contacts arrive with `phone: null` →
+  stored as `unknown`; `language: null` → defaults `tr`
+
 ## Accumulated Context
 
 ### Roadmap Evolution
