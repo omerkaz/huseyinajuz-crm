@@ -15,9 +15,13 @@
   functions and verified the email chain end-to-end in production.
   Archived: `milestones/v1.1-automation-polish.md`
 
-- 🔄 **v1.2 — Deliverability & Landing Page Drip** — IN PROGRESS. Phases 12–15 below.
-- 💤 **v1.3 — Patient Communication & Scheduling** (candidates: CAL-01, DOC-01,
-  MSG-01/SEED-001, WEB-01, DMARC ride-along)
+- 🔄 **v1.2 — Deliverability** — IN PROGRESS. Phases 12–14, 16, 17 below.
+  Remaining: Phase 16 (Email Design System). The drip (old Phase 15) moved to
+  v1.3 on 2026-08-10 — see Phase 15 supersession note.
+- 🔜 **v1.3 — Lead Intake & Nurture** — SCOPED 2026-08-10 (grilling session +
+  two-model edge case review). Phases 18–22 below.
+- 💤 **v1.4 — Patient Communication & Scheduling** (candidates: CAL-01, DOC-01,
+  MSG-01/SEED-001, WEB-01, survey question editor, DMARC ride-along)
 
 ## v1.2 Phases
 
@@ -92,6 +96,11 @@ replaces the fragile 24h BETWEEN windows (D017 revisit).
 3. `schema.sql` matches live DB after migration
 
 ### Phase 15: Landing Page Drip Sequence
+
+> **SUPERSEDED (2026-08-10):** never executed. DRIP-01 (form → lead) was absorbed
+> into v1.3 SURV-01 (direct POST replaces the Netlify webhook so the response can
+> return a survey token). The drip itself (DRIP-02..05) moved to v1.3 Phase 22
+> with amended conditions. Section kept for history.
 
 **Goal:** Landing page form submissions automatically enter the CRM as leads
 and receive a 4-step email drip (Day 3 / 7 / 11 / 20) with a discount offer
@@ -173,17 +182,24 @@ paragraphs — while staying deliverability-safe across major clients.
 | MAIL-03 | 13 | Done |
 | MAIL-04 | 12 | Done |
 | MAIL-05 | 16 | Pending |
-| DRIP-01 | 15 | Pending |
-| DRIP-02 | 15 | Pending |
-| DRIP-03 | 15 | Pending |
-| DRIP-04 | 15 | Pending |
-| DRIP-05 | 15 | Pending |
+| DRIP-01 | 15 | Superseded by SURV-01 |
+| DRIP-02 | 22 | Pending |
+| DRIP-03 | 22 | Pending |
+| DRIP-04 | 22 | Pending |
+| DRIP-05 | 22 | Pending (toggles live in /email route, not Settings) |
 | PRICE-01 | 17 | Done |
+| SRC-01 | 18 | Pending |
+| SURV-01 | 19 | Pending |
+| SURV-02 | 19 | Pending |
+| SURV-03 | 19 | Pending |
+| SURV-04 | 20 | Pending |
+| MAIL-06 | 21 | Pending |
 
 ## Phase Numbering
 
 Phases 1–11 consumed by v1.0 (1–6) and v1.1 (7–11) under the old slice
-structure. v1.2 continues at 12–17.
+structure. v1.2 continues at 12–17 (15 superseded, never executed). v1.3
+continues at 18–22.
 
 ## Context Loss Note
 
@@ -219,3 +235,89 @@ sales use the updated prices ($297/$497/$797).
 4. New sales compute against new prices
 5. `npx tsc -b` clean + `npm test` green
 6. `schema.sql` matches live DB after migration
+
+## v1.3 Phases — Lead Intake & Nurture (scoped 2026-08-10)
+
+**Scoping method:** grilling session (3 rounds) + edge case review (Gemini 3.1 +
+GPT 5.4). Target architecture diagram: `docs/diagrams/lead-intake-nurture.html`.
+ManyChat account audit snapshot: Notion Document Hub "ManyChat Flow Inventory
+(2026-08-10)" — 23 post-based Auto-DM flows (all one easy-builder template,
+acquisition, untouched) + CRM Lead Sync. Sequences empty; no nurture overlap.
+
+**Key decisions:**
+
+- `source` is **first-touch and immutable** (`manychat | landing_page | manual`)
+- Survey is a **single hosted page** in the landing repo (`huseyinajuz.com/survey`),
+  English-only, ~8 qualification questions + email capture; ManyChat delivers a
+  tokenized link, landing redirects to it after form submit
+- **Token, not mc_id:** manychat-webhook response returns `survey_token`; the
+  CRM Lead Sync flow maps it to a custom field via External Request response
+  mapping and the invite DM uses it — raw `mc_id` is guessable and never
+  authorizes a submission (edge-case review, both models)
+- Lead is born at **form submit** (survey abandonment keeps the contact);
+  landing form JS POSTs directly to an Edge Function (sync token return),
+  Netlify Forms kept as fallback capture on fetch failure
+- Survey completion sets an **indicator only** — lifecycle is never
+  auto-advanced; `contacted` stays a human action
+- Drip condition is **has email AND lifecycle = 'lead'** (source-agnostic);
+  the survey is what makes ManyChat leads drippable (IG contacts arrive
+  email-less; ManyChat flows have captured 0 emails)
+- `auto_cold_leads` moves from day 12 to **day 22** so Day 20 can fire
+  (D018 revision); v1.1 lead follow-up emails (AUTO-04, day 3/7/12) are
+  **retired when the drip ships** — same audience, double-send otherwise
+- Email toggles (7 existing + 4 drip) move from Settings to the new
+  **/email route** (user decision, overrides keep-in-Settings recommendation)
+- Question editor deferred to v1.4; schema future-proofed instead
+  (stable answer keys `q_*` in jsonb + `survey_version` column)
+
+### Phase 18: Lead Source Tag (SRC-01)
+
+- `patients.source text NOT NULL CHECK (source IN ('manychat','landing_page','manual'))`
+- Backfill: `manychat_id IS NOT NULL → 'manychat'`, else `'manual'`
+- manychat-webhook sets `'manychat'`; manual form sets `'manual'`
+- `LEAD_SOURCES` as-const union in `types/database.ts`
+- Patients list filter + funnel segmentation by source
+
+### Phase 19: Shared Qualification Survey (SURV-01, SURV-02, SURV-03)
+
+- **SURV-01** — landing form → Edge Function: creates patient
+  (`source: 'landing_page'`, dedup by `lower(email)` partial unique index,
+  never resets lifecycle of an existing patient), returns `survey_token`,
+  JS redirects to `/survey?t=<token>`; Netlify Forms fallback on fetch failure
+- **SURV-02** — `/survey` static page in landing repo (EN, 8 questions:
+  email, duration, area, age range, gender, prior treatments, recent blood
+  test, readiness) + survey-submit Edge Function: validates token, whitelists
+  answer keys/values server-side, upserts `survey_responses`
+  (`UNIQUE(patient_id)`, `survey_version`), atomic email backfill
+  (`UPDATE … WHERE email IS NULL`), skeleton patient on webhook race
+- **SURV-03** — CRM surfacing: "survey completed" indicator (list + detail),
+  raw answers on patient detail, `/surveys` responses list route
+  (newest first, source filter, link to patient)
+- Hardening from review: CORS/OPTIONS for huseyinajuz.com, rate limiting,
+  payload size limits, Referrer-Policy on survey page
+
+### Phase 20: ManyChat Survey Invite (SURV-04)
+
+- Extend the live CRM Lead Sync flow: External Request response mapping
+  (`survey_token` → custom field) + invite DM step with tokenized link
+  `?t={{survey_token}}&src=manychat` — immediate on new contact
+- Rename the 3 identically-named "Auto-DM links from comments" flows (hygiene)
+- Built via dev-browser against the ManyChat account
+
+### Phase 21: Email Route (MAIL-06)
+
+- New `/email` route: `email_send_log` viewer + manual per-patient template
+  send (existing send-email JWT path, server-side recipient check)
+- Move the 7 email toggles from Settings to `/email` (UI relocation;
+  `practitioner_settings` columns unchanged) — drip toggles will be born here
+- Ordered before the drip so its toggles land in their final home
+
+### Phase 22: Drip Sequence (DRIP-02..05 amended)
+
+- Day 3 / 7 / 11 / 20 emails, Day 20 discount (details still TBD by Hüseyin)
+- Condition: has email AND `lifecycle_state = 'lead'`; stops on any transition
+- At-least-once accounting via existing `email_send_log` pattern
+- Survey CTA in drip emails when survey not completed
+- `auto_cold_leads` → day 22; retire AUTO-04 lead follow-up (supersession)
+- Per-step toggles (OFF by default) under `/email`; templates use Phase 16
+  design system

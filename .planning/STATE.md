@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Deliverability & Landing Page Drip
 status: in_progress
-last_updated: "2026-07-19T00:00:00.000Z"
-last_activity: 2026-07-19
+last_updated: "2026-08-10T00:00:00.000Z"
+last_activity: 2026-08-10
 progress:
   total_phases: 5
   completed_phases: 4
@@ -15,17 +15,18 @@ progress:
 
 # Project State
 
-**Last updated:** 2026-07-19
-**Current milestone:** v1.2 Deliverability & Landing Page Drip (in progress)
-**Current phase:** Phases 13 + 17 Done; Phase 15 blocked, Phase 16 next
+**Last updated:** 2026-08-10
+**Current milestone:** v1.2 Deliverability (in progress — Phase 16 remaining)
+**Next milestone:** v1.3 Lead Intake & Nurture (scoped 2026-08-10)
 
 ## Current Position
 
 Phase: 17 — Package Price Management (DONE 2026-07-19)
 Plans: 12-01 ✅, 13-01 ✅, 14-01 ✅, 14-02 ✅, 17-01 ✅
 Status: PRICE-01 complete — prices editable, agreed_price live, 26 tests pass
-Last activity: 2026-07-19 — Phase 17 executed (5 commits)
-Next code-ready work: Phase 16 (Email Design System — unblocked)
+Last activity: 2026-08-10 — v1.3 scoped (grilling + edge case review); ManyChat
+flow inventory captured (Notion Doc Hub); old Phase 15 superseded
+Next code-ready work: Phase 16 (Email Design System), then v1.3 Phase 18 (SRC-01)
 
 ## Phase Status
 
@@ -61,11 +62,25 @@ Next code-ready work: Phase 16 (Email Design System — unblocked)
   (backfill would be a separate task). IG contacts arrive with `phone: null` →
   stored as `unknown`; `language: null` → defaults `tr`
 
+## v1.3 Scoped: Lead Intake & Nurture (2026-08-10)
+
+- Method: grilling session (3 rounds) + Gemini/GPT edge case review
+- Phases 18–22: source tag → survey (landing-hosted, tokenized) → ManyChat
+  invite (response-mapped token, NOT raw mc_id) → /email route (toggles move
+  there) → drip (email-gated, source-agnostic; auto_cold → day 22; AUTO-04
+  retired on ship)
+- Facts that shaped it: landing form is Netlify-Forms-only today; IG leads
+  arrive email-less (ManyChat flows captured 0 emails) — survey is the email
+  gate that makes ManyChat leads drippable
+- Artifacts: ROADMAP v1.3 section, REQUIREMENTS v1.3 section,
+  docs/diagrams/lead-intake-nurture.html, Notion "ManyChat Flow Inventory"
+
 ## Accumulated Context
 
 ### Roadmap Evolution
 - Phase 17 added: Package Price Management (PRICE-01)
 - Phase 17 executed: 5 commits, 26 tests pass, migration live
+- 2026-08-10: drip moved v1.2→v1.3; old v1.3 candidates → v1.4
 
 - Edge Function env has NO `PRACTITIONER_USER_ID` — functions resolve the
   practitioner from the `practitioner_settings` row (D015). Setting the env var

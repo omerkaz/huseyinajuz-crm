@@ -63,9 +63,9 @@
 
 ### Landing Page Lead Funnel (DRIP)
 
-- [ ] **DRIP-01**: Landing page form submissions create a lead in the CRM —
-      Netlify form webhook → Supabase Edge Function → patient upsert with
-      `lifecycle_state: 'lead'`, `source: 'landing_page'`. Idempotent by email.
+- [ ] ~~**DRIP-01**~~: **Superseded by SURV-01 (2026-08-10)** — direct JS POST
+      replaced the Netlify webhook so the response can return a survey token
+      synchronously for the survey redirect.
 - [ ] **DRIP-02**: 4-step automated follow-up drip for landing page leads —
       Day 3 / Day 7 / Day 11 / Day 20. Each step is a separate email template.
       Timing measured from `created_at` of the lead record.
@@ -99,13 +99,62 @@
 | DRIP-04 | Phase 15 |
 | DRIP-05 | Phase 15 |
 
-### Open Questions (need Hüseyin's input)
+### Open Questions — resolved 2026-08-10 (one remaining)
 
-- What discount to offer on Day 20? (percentage, fixed amount, or promo code)
-- Email copy/tone for each of the 4 steps — or should we draft and he approves?
-- Should leads who came via ManyChat also get this drip, or only landing page leads?
+- Day 20 discount details — **still TBD by Hüseyin** (percentage/fixed/promo code)
+- Email copy: we draft, Hüseyin approves (same pattern as v1.1 templates)
+- ManyChat leads DO get the drip — condition is **has email + lifecycle = 'lead'**,
+  source-agnostic. The survey supplies the email for ManyChat leads.
+- Amendments: DRIP-02..05 moved to v1.3 Phase 22; DRIP-05 toggles live under the
+  new `/email` route (not Settings); `auto_cold_leads` moves to day 22 so Day 20
+  can fire; AUTO-04 lead follow-up is retired when the drip ships (same audience).
 
-## Future Requirements (deferred to v1.3+)
+## v1.3 Requirements — Lead Intake & Nurture (scoped 2026-08-10)
+
+### Lead Source (SRC)
+
+- [ ] **SRC-01**: Every patient carries a first-touch, immutable `source`
+      (`manychat | landing_page | manual`) — DB CHECK + as-const union, backfill
+      by `manychat_id` presence, patients list filter, funnel segmentation.
+
+### Qualification Survey (SURV)
+
+- [ ] **SURV-01**: Landing form submit creates a CRM lead (`source:
+      'landing_page'`, email-deduped via partial unique index, never resets an
+      existing patient's lifecycle) and returns a `survey_token`; browser
+      redirects to `/survey?t=<token>`. Netlify Forms kept as fetch-failure
+      fallback. (Absorbs DRIP-01.)
+- [ ] **SURV-02**: Single hosted survey page (landing repo, EN, 8 questions +
+      email capture) + survey-submit Edge Function — token-validated,
+      server-side answer whitelist, `survey_responses` with `UNIQUE(patient_id)`
+      + `survey_version` + stable `q_*` jsonb keys, atomic email backfill.
+- [ ] **SURV-03**: CRM surfacing — survey-completed indicator (list + detail),
+      raw answers on patient detail, `/surveys` responses list (source filter,
+      newest first, patient links).
+- [ ] **SURV-04**: ManyChat invite — CRM Lead Sync flow extended with External
+      Request response mapping (`survey_token` → custom field) + immediate
+      invite DM using the tokenized link. Raw `mc_id` never authorizes a
+      submission. Includes renaming the 3 duplicate-named flows.
+
+### Email Operations (MAIL)
+
+- [ ] **MAIL-06**: `/email` route — send log viewer, manual per-patient
+      template send (JWT path, server-side recipient check), and the 7 email
+      toggles relocated from Settings (columns unchanged).
+
+### Traceability
+
+| Requirement | Phase |
+|-------------|-------|
+| SRC-01 | Phase 18 |
+| SURV-01 | Phase 19 |
+| SURV-02 | Phase 19 |
+| SURV-03 | Phase 19 |
+| SURV-04 | Phase 20 |
+| MAIL-06 | Phase 21 |
+| DRIP-02..05 | Phase 22 |
+
+## Future Requirements (deferred to v1.4+)
 
 - **CAL-01**: Appointment scheduling integration (Google Calendar or Calendly) —
       no specification yet; needs discuss session with Hüseyin (old R013)
@@ -113,7 +162,11 @@
       blocked on content from Hüseyin (old R014)
 - **MSG-01**: ManyChat outbound messaging (WhatsApp/IG) — SEED-001; API key
       verified 2026-07-11, Pro account confirmed
-- **WEB-01**: Landing page redesign — huseyinajuz.com on Netlify (R016, old M004)
+- **WEB-01**: Landing page redesign — huseyinajuz.com on Netlify (R016, old M004);
+      design groundwork already in development (Trichoscope Daylight, SEED-002/003)
+- **Survey question editor**: CRM-managed survey questions (definition table,
+      public fetch endpoint, response versioning) — schema future-proofed in
+      SURV-02; build only if question churn becomes real
 
 ## Out of Scope
 
