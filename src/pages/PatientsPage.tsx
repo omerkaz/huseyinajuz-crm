@@ -6,7 +6,14 @@ import { PatientStatusBadge } from "@/components/patients/PatientStatusBadge";
 import { PatientFilters } from "@/components/patients/PatientFilters";
 import { getPatients } from "@/lib/patients";
 import { getPayments } from "@/lib/payments";
-import type { LifecycleState, PackageType, Patient, Payment, PaymentStatus } from "@/types/database";
+import type {
+  LeadSource,
+  LifecycleState,
+  PackageType,
+  Patient,
+  Payment,
+  PaymentStatus,
+} from "@/types/database";
 import { Loader2, Plus, Users } from "lucide-react";
 
 /* paid = settled growth, partial = needs attention, unpaid = not in motion */
@@ -77,6 +84,9 @@ export default function PatientsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<LifecycleState | "">("");
   const [packageType, setPackageType] = useState<PackageType | "">("");
+  const [source, setSource] = useState<LeadSource | "">("");
+
+  const hasActiveFilters = Boolean(search || status || packageType || source);
 
   const fetchPatients = useCallback(async () => {
     setLoading(true);
@@ -86,11 +96,13 @@ export default function PatientsPage() {
       search?: string;
       status?: LifecycleState;
       packageType?: PackageType;
+      source?: LeadSource;
     } = {};
 
     if (search.trim()) filters.search = search.trim();
     if (status) filters.status = status;
     if (packageType) filters.packageType = packageType;
+    if (source) filters.source = source;
 
     const [result, paymentsResult] = await Promise.all([
       getPatients(filters),
@@ -112,7 +124,7 @@ export default function PatientsPage() {
     }
 
     setLoading(false);
-  }, [search, status, packageType]);
+  }, [search, status, packageType, source]);
 
   useEffect(() => {
     // Debounce search input, instant for dropdowns
@@ -141,9 +153,11 @@ export default function PatientsPage() {
           search={search}
           status={status}
           packageType={packageType}
+          source={source}
           onSearchChange={setSearch}
           onStatusChange={setStatus}
           onPackageTypeChange={setPackageType}
+          onSourceChange={setSource}
         />
       </Card>
 
@@ -171,16 +185,16 @@ export default function PatientsPage() {
             <Users className="h-7 w-7 text-ink-secondary" strokeWidth={1.5} />
           </div>
           <h3 className="display-condensed mt-4 text-[1rem] text-ink">
-            {search || status || packageType
+            {hasActiveFilters
               ? "No patients match your filters"
               : "No patients yet"}
           </h3>
           <p className="mt-1 text-sm text-ink-secondary">
-            {search || status || packageType
+            {hasActiveFilters
               ? "Try adjusting your search or filters."
               : "Add your first patient to get started."}
           </p>
-          {!search && !status && !packageType && (
+          {!hasActiveFilters && (
             <Link to="/patients/new" className="mt-4 inline-block">
               <Button size="sm">
                 <Plus className="h-4 w-4" />

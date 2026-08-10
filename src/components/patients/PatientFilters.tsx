@@ -1,15 +1,23 @@
 import { Input, Select } from "@/components/ui";
-import { LIFECYCLE_STATES, LIFECYCLE_LABELS, PACKAGE_TYPES } from "@/types/database";
-import type { LifecycleState, PackageType } from "@/types/database";
+import {
+  LEAD_SOURCES,
+  LEAD_SOURCE_LABELS,
+  LIFECYCLE_STATES,
+  LIFECYCLE_LABELS,
+  PACKAGE_TYPES,
+} from "@/types/database";
+import type { LeadSource, LifecycleState, PackageType } from "@/types/database";
 import { Search } from "lucide-react";
 
 interface PatientFiltersProps {
   search: string;
   status: LifecycleState | "";
   packageType: PackageType | "";
+  source: LeadSource | "";
   onSearchChange: (value: string) => void;
   onStatusChange: (value: LifecycleState | "") => void;
   onPackageTypeChange: (value: PackageType | "") => void;
+  onSourceChange: (value: LeadSource | "") => void;
 }
 
 const packageLabels: Record<PackageType, string> = {
@@ -22,9 +30,11 @@ export function PatientFilters({
   search,
   status,
   packageType,
+  source,
   onSearchChange,
   onStatusChange,
   onPackageTypeChange,
+  onSourceChange,
 }: PatientFiltersProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -64,6 +74,21 @@ export function PatientFilters({
           {PACKAGE_TYPES.map((p) => (
             <option key={p} value={p}>
               {packageLabels[p]}
+            </option>
+          ))}
+        </Select>
+      </div>
+
+      {/* Source filter */}
+      <div className="w-full sm:w-40">
+        <Select
+          value={source}
+          onChange={(e) => onSourceChange(e.target.value as LeadSource | "")}
+        >
+          <option value="">All Sources</option>
+          {LEAD_SOURCES.map((s) => (
+            <option key={s} value={s}>
+              {LEAD_SOURCE_LABELS[s]}
             </option>
           ))}
         </Select>
