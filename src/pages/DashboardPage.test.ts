@@ -21,6 +21,7 @@ function patient(overrides: Partial<Patient> & { id: string; lifecycle_state: Pa
     package_type: null,
     agreed_price: null,
     notes_text: null,
+    source: "manual",
     manychat_id: null,
     instagram_username: null,
     created_by: "user-1",

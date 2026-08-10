@@ -1,6 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { computeFunnel, FUNNEL_STAGES } from "./funnelMetrics.ts";
+import { LEAD_SOURCES } from "../types/database.ts";
 import type { Patient, StateTransition, LifecycleState } from "../types/database.ts";
 
 // ── Fixtures ──
@@ -21,6 +22,7 @@ function patient(
     package_type: null,
     agreed_price: null,
     notes_text: null,
+    source: "manual",
     manychat_id: null,
     instagram_username: null,
     created_by: "user-1",
@@ -67,8 +69,13 @@ describe("computeFunnel — zero data", () => {
       assert.equal(s.pctOfLeads, 0);
       assert.equal(s.pctOfPrevious, 0);
     }
-    assert.equal(m.bySource.manychat.total, 0);
-    assert.equal(m.bySource.manual.conversionPct, 0);
+    // Every source keeps a row even with no data at all.
+    assert.deepEqual(Object.keys(m.bySource), [...LEAD_SOURCES]);
+    for (const source of LEAD_SOURCES) {
+      assert.equal(m.bySource[source].total, 0);
+      assert.equal(m.bySource[source].reachedTreatment, 0);
+      assert.equal(m.bySource[source].conversionPct, 0);
+    }
   });
 });
 
@@ -213,8 +220,8 @@ describe("computeFunnel — time in stage", () => {
 describe("computeFunnel — cohorts", () => {
   test("groups by created_at month with source split and conversion", () => {
     const may = [
-      patient({ id: "m1", lifecycle_state: "active_treatment", created_at: "2025-05-10T00:00:00Z", manychat_id: "mc1" }),
-      patient({ id: "m2", lifecycle_state: "cold", created_at: "2025-05-20T00:00:00Z", manychat_id: "mc2" }),
+      patient({ id: "m1", lifecycle_state: "active_treatment", created_at: "2025-05-10T00:00:00Z", source: "manychat", manychat_id: "mc1" }),
+      patient({ id: "m2", lifecycle_state: "cold", created_at: "2025-05-20T00:00:00Z", source: "manychat", manychat_id: "mc2" }),
     ];
     const june = [
       patient({ id: "j1", lifecycle_state: "completed", created_at: "2025-06-01T00:00:00Z" }),
@@ -241,22 +248,53 @@ describe("computeFunnel — cohorts", () => {
   });
 });
 
-describe("computeFunnel — source split", () => {
-  test("manychat vs manual conversion to treatment", () => {
+describe("computeFunnel — source segmentation", () => {
+  test("splits conversion to treatment across all three sources", () => {
     const m = computeFunnel(
       [
-        patient({ id: "a", lifecycle_state: "active_treatment", manychat_id: "mc1" }),
-        patient({ id: "b", lifecycle_state: "lead", manychat_id: "mc2" }),
-        patient({ id: "c", lifecycle_state: "completed" }),
-        patient({ id: "d", lifecycle_state: "contacted" }),
+        patient({ id: "a", lifecycle_state: "active_treatment", source: "manychat", manychat_id: "mc1" }),
+        patient({ id: "b", lifecycle_state: "lead", source: "manychat", manychat_id: "mc2" }),
+        patient({ id: "c", lifecycle_state: "completed", source: "manual" }),
+        patient({ id: "d", lifecycle_state: "contacted", source: "manual" }),
+        patient({ id: "e", lifecycle_state: "week_6_checkin", source: "landing_page" }),
       ],
       [],
     );
+
     assert.equal(m.bySource.manychat.total, 2);
     assert.equal(m.bySource.manychat.reachedTreatment, 1);
     assert.equal(m.bySource.manychat.conversionPct, 50);
+
     assert.equal(m.bySource.manual.total, 2);
     assert.equal(m.bySource.manual.reachedTreatment, 1);
     assert.equal(m.bySource.manual.conversionPct, 50);
+
+    assert.equal(m.bySource.landing_page.total, 1);
+    assert.equal(m.bySource.landing_page.reachedTreatment, 1);
+    assert.equal(m.bySource.landing_page.conversionPct, 100);
+
+    // Segments partition the population — no patient counted twice or dropped.
+    const summed = LEAD_SOURCES.reduce((n, s) => n + m.bySource[s].total, 0);
+    assert.equal(summed, m.totalPatients);
+  });
+
+  test("source, not manychat_id, decides the segment", () => {
+    // A landing-page lead that later got a ManyChat id keeps its first touch.
+    const m = computeFunnel(
+      [patient({ id: "a", lifecycle_state: "lead", source: "landing_page", manychat_id: "mc9" })],
+      [],
+    );
+
+    assert.equal(m.bySource.landing_page.total, 1);
+    assert.equal(m.bySource.manychat.total, 0);
+    assert.equal(m.cohorts[0].fromManychat, 0);
+  });
+
+  test("a source with no patients reports zero, not a missing row", () => {
+    const m = computeFunnel([patient({ id: "a", lifecycle_state: "lead", source: "manual" })], []);
+
+    assert.deepEqual(Object.keys(m.bySource), [...LEAD_SOURCES]);
+    assert.equal(m.bySource.landing_page.total, 0);
+    assert.equal(m.bySource.landing_page.conversionPct, 0);
   });
 });

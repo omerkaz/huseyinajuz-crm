@@ -1,5 +1,7 @@
 import {
+  LEAD_SOURCES,
   LIFECYCLE_STATES,
+  type LeadSource,
   type LifecycleState,
   type Patient,
   type StateTransition,
@@ -68,6 +70,7 @@ export interface CohortMetric {
   /** "YYYY-MM" of patient creation. */
   month: string;
   total: number;
+  /** Cohort members whose first-touch source is ManyChat. */
   fromManychat: number;
   reachedTreatment: number;
   /** Currently cold. */
@@ -96,7 +99,8 @@ export interface FunnelMetrics {
   reengaged: number;
   /** Ascending by month. */
   cohorts: CohortMetric[];
-  bySource: { manychat: SourceMetric; manual: SourceMetric };
+  /** One entry per lead source, in LEAD_SOURCES order — zero-count sources included. */
+  bySource: Record<LeadSource, SourceMetric>;
 }
 
 // ── Helpers ──
@@ -207,7 +211,7 @@ export function computeFunnel(
       cohortMap.set(month, cohort);
     }
     cohort.total += 1;
-    if (p.manychat_id) cohort.fromManychat += 1;
+    if (p.source === "manychat") cohort.fromManychat += 1;
     if (depth >= FUNNEL_DEPTH.active_treatment) cohort.reachedTreatment += 1;
     if (p.lifecycle_state === "cold") cohort.wentCold += 1;
   }
@@ -216,7 +220,9 @@ export function computeFunnel(
     c.conversionPct = c.total > 0 ? (c.reachedTreatment / c.total) * 100 : 0;
   }
 
-  // Source split: ManyChat-acquired vs manually entered.
+  // Segmentation by first-touch source (SRC-01). Every source in LEAD_SOURCES
+  // gets a row, including ones with no patients yet — a zero tells the reader
+  // the channel exists and is not converting, which an absent row does not.
   const sourceMetric = (subset: typeof journeys): SourceMetric => {
     const reachedTreatment = subset.filter(
       (j) => j.depth >= FUNNEL_DEPTH.active_treatment,
@@ -227,10 +233,12 @@ export function computeFunnel(
       conversionPct: subset.length > 0 ? (reachedTreatment / subset.length) * 100 : 0,
     };
   };
-  const bySource = {
-    manychat: sourceMetric(journeys.filter((j) => j.patient.manychat_id != null)),
-    manual: sourceMetric(journeys.filter((j) => j.patient.manychat_id == null)),
-  };
+  const bySource = Object.fromEntries(
+    LEAD_SOURCES.map((source) => [
+      source,
+      sourceMetric(journeys.filter((j) => j.patient.source === source)),
+    ]),
+  ) as Record<LeadSource, SourceMetric>;
 
   return {
     totalPatients: total,

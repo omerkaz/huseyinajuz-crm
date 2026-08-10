@@ -4,7 +4,12 @@ import { Button, Card } from "@/components/ui";
 import { getPatients } from "@/lib/patients";
 import { getStateTransitions } from "@/lib/transitions";
 import { computeFunnel, type FunnelMetrics } from "@/lib/funnelMetrics";
-import { LIFECYCLE_LABELS, type LifecycleState } from "@/types/database";
+import {
+  LEAD_SOURCES,
+  LEAD_SOURCE_LABELS,
+  LIFECYCLE_LABELS,
+  type LifecycleState,
+} from "@/types/database";
 
 // ── Formatting helpers ──
 
@@ -79,10 +84,10 @@ function FunnelBars({ metrics }: { metrics: FunnelMetrics }) {
 }
 
 function SourceCard({ metrics }: { metrics: FunnelMetrics }) {
-  const rows = [
-    { label: "ManyChat", data: metrics.bySource.manychat },
-    { label: "Manual", data: metrics.bySource.manual },
-  ];
+  const rows = LEAD_SOURCES.map((source) => ({
+    label: LEAD_SOURCE_LABELS[source],
+    data: metrics.bySource[source],
+  }));
   return (
     <Card hover={false} className="p-0">
       <SectionHeader title="Lead Source → Treatment" />
