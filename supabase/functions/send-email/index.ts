@@ -1,8 +1,13 @@
 // Supabase Edge Function: send-email
 // Validates auth, checks practitioner_settings toggle for the feature,
 // then sends transactional email via the Resend API using fetch().
+//
+// v4 (Phase 16 / MAIL-05): this is the single branding chokepoint. Callers send
+// a bare content fragment; the branded shell, footer, and plain-text fallback
+// are applied here — see ./emailTemplate.ts for the design tokens.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { buildPlainText, wrapEmailHtml } from "./emailTemplate.ts";
 
 // Feature keys must match the practitioner_settings column names (minus _enabled suffix)
 const VALID_FEATURES = [
@@ -16,33 +21,6 @@ const VALID_FEATURES = [
 ] as const;
 
 type FeatureKey = (typeof VALID_FEATURES)[number];
-
-// ── Email footer (injected into every outbound email) ──
-const FOOTER_HTML = `
-<hr style="border:none;border-top:1px solid #e5e5e5;margin:24px 0 16px">
-<p style="font-size:13px;color:#7a756e;margin:0">
-  Warm regards,<br>
-  <strong>Hüseyin Ajuz</strong> · Hair Loss Specialist<br>
-  <a href="mailto:mrhus@huseyinacuz.com" style="color:#2A9D8F;text-decoration:none">mrhus@huseyinacuz.com</a>
-</p>
-`;
-
-const FOOTER_TEXT = `\n---\nWarm regards,\nHüseyin Ajuz · Hair Loss Specialist\nmrhus@huseyinacuz.com\n`;
-
-/** Inject footer into HTML — before </body> if present, otherwise append */
-function injectHtmlFooter(html: string): string {
-  const trimmed = html.trim();
-  const bodyCloseIdx = trimmed.toLowerCase().lastIndexOf("</body>");
-  if (bodyCloseIdx !== -1) {
-    return trimmed.slice(0, bodyCloseIdx) + FOOTER_HTML + trimmed.slice(bodyCloseIdx);
-  }
-  return trimmed + FOOTER_HTML;
-}
-
-/** Inject footer into plain-text version */
-function injectTextFooter(text: string): string {
-  return text.trim() + FOOTER_TEXT;
-}
 
 // ── CORS headers ──
 const corsHeaders = {
@@ -217,12 +195,11 @@ Deno.serve(async (req: Request) => {
       reply_to: "mrhus@huseyinacuz.com",
       to: [to.trim()],
       subject: subject.trim(),
-      html: injectHtmlFooter(html as string),
+      html: wrapEmailHtml(html, { title: subject.trim() }),
+      // Always send a text part: HTML-only mail scores worse with spam filters,
+      // and the branded shell adds markup weight.
+      text: buildPlainText(text, html),
     };
-
-    if (typeof text === "string" && text.trim()) {
-      resendPayload.text = injectTextFooter(text as string);
-    }
 
     const resendRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
