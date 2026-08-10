@@ -33,6 +33,11 @@ create table if not exists patients (
   agreed_price  numeric(10,2) default null
     check (agreed_price >= 0),
   notes_text    text,
+  -- First-touch acquisition channel (SRC-01). Immutable after creation:
+  -- the webhook stamps 'manychat', the landing form 'landing_page' (Phase 19),
+  -- and the CRM form 'manual'. The default only catches writers that forget.
+  source        text not null default 'manual'
+    check (source in ('manychat', 'landing_page', 'manual')),
   manychat_id   text unique,
   instagram_username text,
   created_by    uuid not null references auth.users(id),
@@ -71,6 +76,7 @@ create table if not exists patient_attachments (
 create index if not exists idx_patients_lifecycle on patients(lifecycle_state);
 create index if not exists idx_patients_created_by on patients(created_by);
 create index if not exists idx_patients_name on patients(last_name, first_name);
+create index if not exists idx_patients_source on patients(source);
 create index if not exists idx_patient_notes_patient on patient_notes(patient_id);
 create index if not exists idx_patient_attachments_patient on patient_attachments(patient_id);
 
