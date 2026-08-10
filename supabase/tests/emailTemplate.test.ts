@@ -1,5 +1,9 @@
 // Unit tests for the Phase 16 email design system (MAIL-05).
 // Run: node --experimental-strip-types --test (wired into `npm test`)
+//
+// Deliberately OUTSIDE supabase/functions/send-email/ — the deploy helper globs
+// every *.ts in the function directory, so a test file living there would be
+// uploaded with the function.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -14,7 +18,7 @@ import {
   escapeHtml,
   htmlToPlainText,
   wrapEmailHtml,
-} from "./emailTemplate.ts";
+} from "../functions/send-email/emailTemplate.ts";
 
 const FRAGMENT = "<p>Dear Ada,</p><p>Please arrange your blood test.</p>";
 
