@@ -139,6 +139,14 @@ pg_cron infrastructure (AUTO-04)
 
 ### Phase 16: Email Design System
 
+> **STATUS (2026-08-11):** send-email v4 deployed to live (branded shell,
+> table layout, dark mode, plain-text parity; tsc/test/lint green; headless
+> Chrome render verified). Remaining: real-inbox render checks (Gmail/Apple
+> Mail/Outlook/iOS dark) and SPF/DKIM spot-check. **Known gap: the current
+> shell is a functional baseline — an elegance pass (typography rhythm,
+> spacing, visual refinement toward the CRM's warm editorial feel) is still
+> wanted before Phase 22 drip templates adopt it.**
+
 **Goal:** Emails look professionally designed and on-brand — not bare
 paragraphs — while staying deliverability-safe across major clients.
 

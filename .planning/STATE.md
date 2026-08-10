@@ -24,9 +24,12 @@ progress:
 Phase: 17 — Package Price Management (DONE 2026-07-19)
 Plans: 12-01 ✅, 13-01 ✅, 14-01 ✅, 14-02 ✅, 17-01 ✅
 Status: PRICE-01 complete — prices editable, agreed_price live, 26 tests pass
-Last activity: 2026-08-10 — v1.3 scoped (grilling + edge case review); ManyChat
-flow inventory captured (Notion Doc Hub); old Phase 15 superseded
-Next code-ready work: Phase 16 (Email Design System), then v1.3 Phase 18 (SRC-01)
+Last activity: 2026-08-11 — Phase 16 implemented (delegated agent) and
+send-email v4 DEPLOYED to live (function ACTIVE, 401 on unauthenticated).
+Phase 16 not yet closed: real-inbox render checks pending, and an **email
+style elegance pass is still needed** — current shell is a functional
+baseline, not the final visual quality (must land before Phase 22 templates).
+Next code-ready work: v1.3 Phase 18 (SRC-01); email elegance pass ride-along
 
 ## Phase Status
 
