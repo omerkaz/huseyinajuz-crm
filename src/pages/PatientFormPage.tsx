@@ -205,6 +205,8 @@ export default function PatientFormPage() {
         country: null,
         lifecycle_state: "lead",
         notes_text: null,
+        // First-touch source (SRC-01) — patients typed into the CRM by hand.
+        source: "manual",
         created_by: user?.id ?? "",
       });
       if (error || !data) {

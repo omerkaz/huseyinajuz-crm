@@ -44,6 +44,22 @@ export const PACKAGE_TYPES = ["standard", "premium", "vip"] as const;
 
 export type PackageType = (typeof PACKAGE_TYPES)[number];
 
+// ── Lead Sources ──
+
+/**
+ * First-touch acquisition channel (SRC-01). Set once at creation and never
+ * updated — `source` is deliberately excluded from PatientUpdate.
+ */
+export const LEAD_SOURCES = ["manychat", "landing_page", "manual"] as const;
+
+export type LeadSource = (typeof LEAD_SOURCES)[number];
+
+export const LEAD_SOURCE_LABELS: Record<LeadSource, string> = {
+  manychat: "ManyChat",
+  landing_page: "Landing Page",
+  manual: "Manual",
+};
+
 // ── Languages ──
 
 export const LANGUAGES = [
@@ -76,6 +92,8 @@ export interface Patient {
   package_type: PackageType | null;
   agreed_price: number | null;
   notes_text: string | null;
+  /** First-touch acquisition channel — immutable after creation. */
+  source: LeadSource;
   manychat_id: string | null;
   instagram_username: string | null;
   created_by: string;
@@ -90,7 +108,10 @@ export type PatientInsert = Omit<Patient, "id" | "created_at" | "updated_at" | "
   state_changed_at?: string | null;
   agreed_price?: number | null;
 };
-export type PatientUpdate = Partial<Omit<Patient, "id" | "created_at" | "updated_at" | "created_by">>;
+/** `source` is first-touch and immutable — it is never part of an update. */
+export type PatientUpdate = Partial<
+  Omit<Patient, "id" | "created_at" | "updated_at" | "created_by" | "source">
+>;
 
 // ── Patient State Transition ──
 

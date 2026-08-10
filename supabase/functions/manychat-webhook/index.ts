@@ -135,6 +135,9 @@ Deno.serve(async (req: Request) => {
     gender,
     language,
     lifecycle_state: "lead",
+    // First-touch source (SRC-01). Only ever written on INSERT — the update
+    // path below must never touch it, so a patient's origin stays immutable.
+    source: "manychat",
     manychat_id: String(manychatId),
     instagram_username: instagramUsername,
   };

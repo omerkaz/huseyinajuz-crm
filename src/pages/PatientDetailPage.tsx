@@ -12,7 +12,7 @@ import { FileUpload } from "@/components/patients/FileUpload";
 import { deletePatient, getPatient } from "@/lib/patients";
 import { getPatientPaymentSummary } from "@/lib/payments";
 import { COUNTRY_CODES } from "@/lib/phone";
-import { LANGUAGES, PACKAGE_TYPES } from "@/types/database";
+import { LANGUAGES, LEAD_SOURCE_LABELS, PACKAGE_TYPES } from "@/types/database";
 import type { PackageType, Patient, PaymentSummary } from "@/types/database";
 
 const dateFormatter = new Intl.DateTimeFormat("en-GB", {
@@ -245,6 +245,8 @@ export default function PatientDetailPage() {
               : null}
           </InfoItem>
           <InfoItem label="Country">{patient.country}</InfoItem>
+          {/* First-touch source (SRC-01) — read-only, never editable. */}
+          <InfoItem label="Source">{LEAD_SOURCE_LABELS[patient.source]}</InfoItem>
           <InfoItem label="Created">
             {dateFormatter.format(new Date(patient.created_at))}
           </InfoItem>

@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { VALID_TRANSITIONS } from "@/types/database";
 import type {
+  LeadSource,
   LifecycleState,
   PackageType,
   Patient,
@@ -14,6 +15,7 @@ export interface PatientFilters {
   search?: string;
   status?: LifecycleState;
   packageType?: PackageType;
+  source?: LeadSource;
 }
 
 // ── Queries ──
@@ -32,6 +34,10 @@ export async function getPatients(
 
   if (filters?.packageType) {
     query = query.eq("package_type", filters.packageType);
+  }
+
+  if (filters?.source) {
+    query = query.eq("source", filters.source);
   }
 
   if (filters?.search) {
