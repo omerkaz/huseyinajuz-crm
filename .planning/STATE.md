@@ -49,7 +49,7 @@ Reviewing.
   trigger live — DB silently retains every deleted patient (verified with
   live insert→delete→archive→cleanup cycle). UI unchanged.
 - Survey/drip/secondary decisions move to the Notion decision ticket
-  "DECIDE: Survey content + drip + open items (v1.3)" — Hüseyin approves
+  "KARAR: Anket + Drip — Hüseyin onayı (v1.3)" (restructured 2026-08-11 for practitioner UX: Turkish, 5 numbered questions, defaults + silence-accepts, WhatsApp-answerable; only the Day 20 discount is mandatory) — Hüseyin approves
   there; Phase 19 starts on approval.
 - Email design: decided BY US (no practitioner input needed) — present the
   result. Render-test target: omerkazfd@gmail.com. Two live test sends
