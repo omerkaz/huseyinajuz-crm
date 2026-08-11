@@ -292,9 +292,11 @@ acquisition, untouched) + CRM Lead Sync. Sequences empty; no nurture overlap.
   (`source: 'landing_page'`, dedup by `lower(email)` partial unique index,
   never resets lifecycle of an existing patient), returns `survey_token`,
   JS redirects to `/survey?t=<token>`; Netlify Forms fallback on fetch failure
-- **SURV-02** — `/survey` static page in landing repo (EN, 8 questions:
-  email, duration, area, age range, gender, prior treatments, recent blood
-  test, readiness) + survey-submit Edge Function: validates token, whitelists
+- **SURV-02** — `/survey` static page in landing repo (EN; question set
+  APPROVED by Hüseyin 2026-08-11: 1 name+surname mandatory, 2 duration,
+  3 area, 4 recent blood test, 5 gender, 6 prior treatments, 7 readiness,
+  8 email mandatory LAST, + optional WhatsApp number; age-range question
+  pending one confirmation — dropped during his edit, possibly accidental) + survey-submit Edge Function: validates token, whitelists
   answer keys/values server-side, upserts `survey_responses`
   (`UNIQUE(patient_id)`, `survey_version`), atomic email backfill
   (`UPDATE … WHERE email IS NULL`), skeleton patient on webhook race
@@ -322,7 +324,9 @@ acquisition, untouched) + CRM Lead Sync. Sequences empty; no nurture overlap.
 
 ### Phase 22: Drip Sequence (DRIP-02..05 amended)
 
-- Day 3 / 7 / 11 / 20 emails, Day 20 discount (details still TBD by Hüseyin)
+- Day 3 / 7 / 11 / 20 emails — APPROVED structure (2026-08-11): Day 3/7 plain
+  reminders; Day 11 AND Day 20 carry the discount: **20%, valid for one month
+  from send date** (Hüseyin's decision — DRIP-03 covers both discount steps)
 - Condition: has email AND `lifecycle_state = 'lead'`; stops on any transition
 - At-least-once accounting via existing `email_send_log` pattern
 - Survey CTA in drip emails when survey not completed

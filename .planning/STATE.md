@@ -55,8 +55,18 @@ Reviewing.
   result. Render-test target: omerkazfd@gmail.com. Two live test sends
   delivered (welcome + blood test reminder, Resend sent:true, toggles
   flipped on→off around the sends).
-Next code-ready work: v1.3 Phase 19 (SURV-01..03) once the DECIDE ticket is
-approved; email elegance pass ride-along
+## Hüseyin Approved (2026-08-11, in-card edits on the KARAR ticket)
+
+- Survey: name-first + email-last (both mandatory), 7 content questions,
+  EN-only; optional WhatsApp number added (silence-accepts). ONE open item:
+  the age-range question vanished in his edit — confirming intent with Ömer.
+- Invite DM approved with his wording ("...understand your problem and how
+  I can help you").
+- Discount: 20%, valid one month from send. Drip: Day 3/7 reminders,
+  Day 11 + Day 20 BOTH carry the discount (DRIP-03 widened).
+- Backfill of 12,809 old contacts: definitive no.
+Next code-ready work: v1.3 Phase 19 (SURV-01..03) — unblocked once the age
+question is confirmed; email elegance pass ride-along
 
 ## Phase Status
 
