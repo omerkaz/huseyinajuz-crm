@@ -200,7 +200,7 @@ paragraphs — while staying deliverability-safe across major clients.
 | SURV-01 | 19 | Done (2026-08-11, live-verified) |
 | SURV-02 | 19 | Done (2026-08-11, live-verified) |
 | SURV-03 | 19 | Done (2026-08-11, live-verified) |
-| SURV-04 | 20 | Pending |
+| SURV-04 | 20 | Done (2026-08-11, published + verified) |
 | MAIL-06 | 21 | Pending |
 
 ## Phase Numbering

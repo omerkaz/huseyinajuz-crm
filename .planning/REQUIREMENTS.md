@@ -131,7 +131,7 @@
 - [x] **SURV-03**: CRM surfacing — survey-completed indicator (list + detail),
       raw answers on patient detail, `/surveys` responses list (source filter,
       newest first, patient links).
-- [ ] **SURV-04**: ManyChat invite — CRM Lead Sync flow extended with External
+- [x] **SURV-04**: ManyChat invite — CRM Lead Sync flow extended with External
       Request response mapping (`survey_token` → custom field) + immediate
       invite DM using the tokenized link. Raw `mc_id` never authorizes a
       submission. Includes renaming the 3 duplicate-named flows.
