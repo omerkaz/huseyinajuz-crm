@@ -67,12 +67,18 @@ src/
 │   ├── PatientDetailPage.tsx  # Info grid, state transitions, notes, payments, files
 │   ├── PipelinePage.tsx       # Kanban columns for 9 lifecycle stages
 │   ├── FunnelPage.tsx         # Conversion funnel, cohorts, drop-off analytics
-│   └── PaymentsPage.tsx       # Filterable payment list
+│   ├── PaymentsPage.tsx       # Filterable payment list
+│   └── SurveysPage.tsx        # Survey responses, newest first, source filter
 supabase/
 ├── schema.sql                 # Tables, RLS, indexes, trigger
+├── migrations/                # Guarded, transactional DDL (applied by hand)
+├── tests/                     # node:test suites for the pure Edge Function modules
 └── functions/
-    └── manychat-webhook/
-        └── index.ts           # ManyChat → patient upsert (Deno, service-role key)
+    ├── manychat-webhook/
+    │   └── index.ts           # ManyChat → patient upsert (Deno, service-role key)
+    ├── send-email/            # Resend chokepoint + branded template
+    ├── landing-lead/          # Landing form → lead + survey_token (public)
+    └── survey-submit/         # Token-authenticated survey response (public)
 ```
 
 ---
@@ -205,9 +211,9 @@ Domain components import directly: `@/components/patients/StateTransitionButton`
 
 ## Database Schema
 
-7 tables in `supabase/schema.sql`:
+9 tables in `supabase/schema.sql`:
 
-- **patients** — core record with lifecycle_state, package_type, `agreed_price` (price-at-sale), manychat_id (unique), phone validation fields
+- **patients** — core record with lifecycle_state, package_type, `agreed_price` (price-at-sale), manychat_id (unique), `survey_token` (uuid, unique), phone validation fields
 - **patient_notes** — timestamped text notes, cascade-delete with patient
 - **patient_attachments** — metadata rows pointing to Storage files, cascade-delete
 - **payments** — amount (numeric 10,2), currency, method, date, reference
@@ -216,13 +222,20 @@ Domain components import directly: `@/components/patients/StateTransitionButton`
 - **patient_state_transitions** — append-only lifecycle history, written ONLY by
   SECURITY DEFINER triggers on patients (captures app, cron, and webhook writers).
   `from_state IS NULL` = funnel entry or backfill seed. Browser access read-only.
+- **survey_responses** — one row per patient (`UNIQUE(patient_id)`), stable `q_*`
+  jsonb answers + `survey_version`. Written only by the survey-submit Edge
+  Function (service role); browser access is read-only through the patient
+  ownership join.
 - **deleted_patients_archive** — D019 silent retention: BEFORE DELETE trigger on
-  patients snapshots the row + child rows as jsonb. Service-role only (RLS
-  enabled, no policies). Storage files are NOT retained, metadata only.
+  patients snapshots the row + child rows (including `surveys`) as jsonb.
+  Service-role only (RLS enabled, no policies). Storage files are NOT retained,
+  metadata only.
 
 All have RLS enabled. `updated_at` trigger auto-fires on patients.
 
-**Indexes:** `lifecycle_state`, `created_by`, `(last_name, first_name)`, FK-based indexes on child tables.
+**Indexes:** `lifecycle_state`, `created_by`, `(last_name, first_name)`, `source`,
+unique `survey_token`, unique partial `lower(btrim(email))` (landing dedup key),
+FK-based indexes on child tables.
 
 **Storage bucket:** `patient-files` — signed URLs with 1-hour expiry.
 
@@ -239,6 +252,27 @@ All have RLS enabled. `updated_at` trigger auto-fires on patients.
   New patients insert with `lifecycle_state: 'lead'`; existing patients only get
   contact fields updated when ManyChat sent real values.
 - **Required env vars:** `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `WEBHOOK_SECRET`, `PRACTITIONER_USER_ID`
+
+### landing-lead (Phase 19 — written, NOT deployed)
+
+- **Path:** `supabase/functions/landing-lead/index.ts`
+- **Auth:** none — deploy with `--no-verify-jwt`; anonymous visitors call it from
+  huseyinajuz.com. CORS allowlist is convenience, not auth: the real guards are
+  input validation, a 4 KB payload cap and a best-effort per-IP rate limit.
+- **Behavior:** `{first_name,last_name,email,phone?}` → patient
+  (`source: 'landing_page'`, `lifecycle_state: 'lead'`), deduped on the
+  normalised email index with 23505 race recovery; returns `{ survey_token }`
+  for the `/survey?t=` redirect. An existing patient is never modified.
+
+### survey-submit (Phase 19 — written, NOT deployed)
+
+- **Path:** `supabase/functions/survey-submit/index.ts`
+  (+ `surveySchema.ts`, the shared pure validator unit-tested by node:test)
+- **Auth:** the `survey_token` uuid itself; invalid → flat 404 JSON. Deploy with
+  `--no-verify-jwt`.
+- **Behavior:** whitelists every answer key/value server-side, upserts
+  `survey_responses` on `patient_id`, and backfills email / phone / name only
+  where the patient record is still blank or placeholder.
 
 ### send-email (v2, deployed)
 
@@ -279,6 +313,7 @@ Edge Function env vars (set via `supabase secrets set`):
 | `/pipeline` | PipelinePage | Protected |
 | `/funnel` | FunnelPage | Protected |
 | `/payments` | PaymentsPage | Protected |
+| `/surveys` | SurveysPage (SURV-03) | Protected |
 | `/settings` | SettingsPage (M002) | Protected |
 
 ---
