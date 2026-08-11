@@ -65,8 +65,12 @@ Reviewing.
 - Discount: 20%, valid one month from send. Drip: Day 3/7 reminders,
   Day 11 + Day 20 BOTH carry the discount (DRIP-03 widened).
 - Backfill of 12,809 old contacts: definitive no.
-Next code-ready work: v1.3 Phase 19 (SURV-01..03) — UNBLOCKED, in progress;
-email elegance pass ride-along
+Phase 19 (SURV-01..03) DONE 2026-08-11: survey live at huseyinajuz.com/survey,
+landing-lead + survey-submit functions deployed, migration applied, E2E
+smoke-verified (create->submit->backfill->dedup->404), D019 extended with
+survey snapshots. 70/70 tests.
+Next code-ready work: v1.3 Phase 20 (SURV-04 ManyChat invite — needs the
+dev-browser ManyChat session); email elegance pass ride-along
 
 ## Phase Status
 

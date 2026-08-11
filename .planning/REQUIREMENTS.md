@@ -119,16 +119,16 @@
 
 ### Qualification Survey (SURV)
 
-- [ ] **SURV-01**: Landing form submit creates a CRM lead (`source:
+- [x] **SURV-01**: Landing form submit creates a CRM lead (`source:
       'landing_page'`, email-deduped via partial unique index, never resets an
       existing patient's lifecycle) and returns a `survey_token`; browser
       redirects to `/survey?t=<token>`. Netlify Forms kept as fetch-failure
       fallback. (Absorbs DRIP-01.)
-- [ ] **SURV-02**: Single hosted survey page (landing repo, EN, 8 questions +
+- [x] **SURV-02**: Single hosted survey page (landing repo, EN, 8 questions +
       email capture) + survey-submit Edge Function — token-validated,
       server-side answer whitelist, `survey_responses` with `UNIQUE(patient_id)`
       + `survey_version` + stable `q_*` jsonb keys, atomic email backfill.
-- [ ] **SURV-03**: CRM surfacing — survey-completed indicator (list + detail),
+- [x] **SURV-03**: CRM surfacing — survey-completed indicator (list + detail),
       raw answers on patient detail, `/surveys` responses list (source filter,
       newest first, patient links).
 - [ ] **SURV-04**: ManyChat invite — CRM Lead Sync flow extended with External

@@ -197,9 +197,9 @@ paragraphs — while staying deliverability-safe across major clients.
 | DRIP-05 | 22 | Pending (toggles live in /email route, not Settings) |
 | PRICE-01 | 17 | Done |
 | SRC-01 | 18 | Done (2026-08-11, live-verified) |
-| SURV-01 | 19 | Pending |
-| SURV-02 | 19 | Pending |
-| SURV-03 | 19 | Pending |
+| SURV-01 | 19 | Done (2026-08-11, live-verified) |
+| SURV-02 | 19 | Done (2026-08-11, live-verified) |
+| SURV-03 | 19 | Done (2026-08-11, live-verified) |
 | SURV-04 | 20 | Pending |
 | MAIL-06 | 21 | Pending |
 
