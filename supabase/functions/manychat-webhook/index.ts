@@ -175,7 +175,7 @@ Deno.serve(async (req: Request) => {
     // since v1.2 it would also pollute the patient_state_transitions log.
     const { data: existing, error: lookupError } = await supabase
       .from("patients")
-      .select("id")
+      .select("id, survey_token")
       .eq("manychat_id", manychatIdStr)
       .maybeSingle();
 
@@ -185,13 +185,16 @@ Deno.serve(async (req: Request) => {
     }
 
     let patientId = existing?.id ?? null;
+    // Returned to ManyChat so the flow can response-map it into a custom
+    // field and DM a tokenized survey link (Phase 20 / SURV-04).
+    let surveyToken: string | null = existing?.survey_token ?? null;
     let isNew = false;
 
     if (!patientId) {
       const { data: inserted, error: insertError } = await supabase
         .from("patients")
         .insert(patientRecord)
-        .select("id")
+        .select("id, survey_token")
         .single();
 
       if (insertError) {
@@ -200,10 +203,11 @@ Deno.serve(async (req: Request) => {
         if (insertError.code === "23505") {
           const { data: raced } = await supabase
             .from("patients")
-            .select("id")
+            .select("id, survey_token")
             .eq("manychat_id", manychatIdStr)
             .maybeSingle();
           patientId = raced?.id ?? null;
+          surveyToken = raced?.survey_token ?? null;
         }
         if (!patientId) {
           console.error("[manychat-webhook] DB insert failed:", insertError.message, insertError.details);
@@ -211,6 +215,7 @@ Deno.serve(async (req: Request) => {
         }
       } else {
         patientId = inserted.id;
+        surveyToken = inserted.survey_token;
         isNew = true;
       }
     }
@@ -273,7 +278,7 @@ Deno.serve(async (req: Request) => {
     }
 
     return jsonResponse(
-      { status, patient_id: patientId, manychat_id: manychatIdStr },
+      { status, patient_id: patientId, manychat_id: manychatIdStr, survey_token: surveyToken },
       httpStatus,
     );
   } catch (err: unknown) {
