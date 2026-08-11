@@ -843,3 +843,56 @@ select p.id, null, p.lifecycle_state, coalesce(p.state_changed_at, p.created_at)
  where not exists (
    select 1 from patient_state_transitions t where t.patient_id = p.id
  );
+
+-- ============================================================
+-- Deleted patient retention (D019, 2026-08-11)
+--
+-- The UI keeps hard-delete (Hüseyin's explicit choice — no archive feature).
+-- The DB quietly snapshots every deleted patient + child rows here before
+-- cascades run. Service-role only: RLS enabled with NO policies on purpose.
+-- Storage files are not retained — only attachment metadata survives.
+-- ============================================================
+
+create table if not exists deleted_patients_archive (
+  id           uuid primary key default gen_random_uuid(),
+  patient_id   uuid        not null,
+  patient      jsonb       not null,
+  notes        jsonb       not null default '[]'::jsonb,
+  payments     jsonb       not null default '[]'::jsonb,
+  attachments  jsonb       not null default '[]'::jsonb,
+  transitions  jsonb       not null default '[]'::jsonb,
+  created_by   uuid,
+  deleted_at   timestamptz not null default now()
+);
+
+create index if not exists idx_deleted_patients_archive_patient_id
+  on deleted_patients_archive(patient_id);
+
+alter table deleted_patients_archive enable row level security;
+
+create or replace function archive_deleted_patient()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into deleted_patients_archive
+    (patient_id, patient, notes, payments, attachments, transitions, created_by)
+  values (
+    old.id,
+    to_jsonb(old),
+    coalesce((select jsonb_agg(to_jsonb(n)) from patient_notes n where n.patient_id = old.id), '[]'::jsonb),
+    coalesce((select jsonb_agg(to_jsonb(p)) from payments p where p.patient_id = old.id), '[]'::jsonb),
+    coalesce((select jsonb_agg(to_jsonb(a)) from patient_attachments a where a.patient_id = old.id), '[]'::jsonb),
+    coalesce((select jsonb_agg(to_jsonb(t)) from patient_state_transitions t where t.patient_id = old.id), '[]'::jsonb),
+    old.created_by
+  );
+  return old;
+end;
+$$;
+
+drop trigger if exists trg_archive_deleted_patient on patients;
+create trigger trg_archive_deleted_patient
+  before delete on patients
+  for each row execute function archive_deleted_patient();

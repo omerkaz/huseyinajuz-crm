@@ -40,7 +40,23 @@ DELETEs that evening). ManyChat leads are being deleted by hand — likely
 mistaken for junk (phone 'unknown', no email). Open with Hüseyin: stop
 deleting ManyChat leads / consider archive-instead-of-delete. Board card in
 Reviewing.
-Next code-ready work: v1.3 Phase 19 (SURV-01..03); email elegance pass ride-along
+
+## Meeting Outcomes (2026-08-11, Hüseyin)
+
+- Deletion mystery CLOSED: he deletes empty ManyChat leads on purpose (no
+  email/phone — nothing to work with). No archive feature wanted in the UI.
+- D019 shipped the same day: `deleted_patients_archive` + BEFORE DELETE
+  trigger live — DB silently retains every deleted patient (verified with
+  live insert→delete→archive→cleanup cycle). UI unchanged.
+- Survey/drip/secondary decisions move to the Notion decision ticket
+  "DECIDE: Survey content + drip + open items (v1.3)" — Hüseyin approves
+  there; Phase 19 starts on approval.
+- Email design: decided BY US (no practitioner input needed) — present the
+  result. Render-test target: omerkazfd@gmail.com. Two live test sends
+  delivered (welcome + blood test reminder, Resend sent:true, toggles
+  flipped on→off around the sends).
+Next code-ready work: v1.3 Phase 19 (SURV-01..03) once the DECIDE ticket is
+approved; email elegance pass ride-along
 
 ## Phase Status
 

@@ -205,7 +205,7 @@ Domain components import directly: `@/components/patients/StateTransitionButton`
 
 ## Database Schema
 
-6 tables in `supabase/schema.sql`:
+7 tables in `supabase/schema.sql`:
 
 - **patients** — core record with lifecycle_state, package_type, `agreed_price` (price-at-sale), manychat_id (unique), phone validation fields
 - **patient_notes** — timestamped text notes, cascade-delete with patient
@@ -216,6 +216,9 @@ Domain components import directly: `@/components/patients/StateTransitionButton`
 - **patient_state_transitions** — append-only lifecycle history, written ONLY by
   SECURITY DEFINER triggers on patients (captures app, cron, and webhook writers).
   `from_state IS NULL` = funnel entry or backfill seed. Browser access read-only.
+- **deleted_patients_archive** — D019 silent retention: BEFORE DELETE trigger on
+  patients snapshots the row + child rows as jsonb. Service-role only (RLS
+  enabled, no policies). Storage files are NOT retained, metadata only.
 
 All have RLS enabled. `updated_at` trigger auto-fires on patients.
 
@@ -350,6 +353,7 @@ Planning now lives **in-repo** under `.planning/` (GSD 1.6.1, workflow-based:
 | D016 | Functions URL + secrets read from Vault, never GUCs | `SET app.*` is not permitted on hosted Supabase |
 | D017 | Reminder crons use 24h `BETWEEN` windows + `COALESCE(state_changed_at, created_at)` | One reminder per patient per feature; missed-cron gap accepted at current volume |
 | D018 | `auto_cold_leads` at 10:00 UTC, after day-12 email at 09:00 | "Last chance" email must fire before the lead goes cold |
+| D019 | Deleted patients silently retained in `deleted_patients_archive` (BEFORE DELETE trigger, jsonb snapshots incl. child rows); UI keeps hard-delete, table is service-role-only (RLS on, zero policies) | Hüseyin deletes empty ManyChat leads on purpose and wants no archive UI — but lead data must survive for recovery/analytics |
 
 ---
 
