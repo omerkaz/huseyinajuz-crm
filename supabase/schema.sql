@@ -40,6 +40,10 @@ create table if not exists patients (
     check (source in ('manychat', 'landing_page', 'manual')),
   manychat_id   text unique,
   instagram_username text,
+  -- Bearer key for the hosted qualification survey (SURV-01, ?t=<token>).
+  -- uuid v4: unguessable, unlike manychat_id — raw mc_id never authorizes a
+  -- submission. Stable for the patient's lifetime.
+  survey_token  uuid not null default gen_random_uuid(),
   created_by    uuid not null references auth.users(id),
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now(),
@@ -77,6 +81,12 @@ create index if not exists idx_patients_lifecycle on patients(lifecycle_state);
 create index if not exists idx_patients_created_by on patients(created_by);
 create index if not exists idx_patients_name on patients(last_name, first_name);
 create index if not exists idx_patients_source on patients(source);
+create unique index if not exists idx_patients_survey_token on patients(survey_token);
+-- Landing-form dedup key (SURV-01). Normalised so "  Ada@X.com " and
+-- "ada@x.com" collide; partial so email-less ManyChat leads never do.
+create unique index if not exists idx_patients_email_normalised
+  on patients (lower(btrim(email)))
+  where email is not null and btrim(email) <> '';
 create index if not exists idx_patient_notes_patient on patient_notes(patient_id);
 create index if not exists idx_patient_attachments_patient on patient_attachments(patient_id);
 
@@ -845,6 +855,35 @@ select p.id, null, p.lifecycle_state, coalesce(p.state_changed_at, p.created_at)
  );
 
 -- ============================================================
+-- v1.3 Phase 19 — Shared qualification survey (SURV-02)
+-- ============================================================
+-- One response row per patient. Written exclusively by the survey-submit
+-- Edge Function (service role); the browser reads it through the patient
+-- ownership join below. Answers use stable `q_*` jsonb keys and are versioned
+-- so a future question editor (v1.4) can reinterpret old rows.
+
+create table if not exists survey_responses (
+  id             uuid primary key default gen_random_uuid(),
+  patient_id     uuid not null unique references patients(id) on delete cascade,
+  source         text not null default 'unknown'
+    check (source in ('manychat', 'landing_page', 'manual', 'unknown')),
+  answers        jsonb not null default '{}'::jsonb,
+  survey_version integer not null default 1,
+  submitted_at   timestamptz not null default now()
+);
+
+create index if not exists idx_survey_responses_submitted_at
+  on survey_responses(submitted_at desc);
+
+alter table survey_responses enable row level security;
+
+-- Read-only for the practitioner. No insert/update/delete policies on purpose.
+create policy "Users can view own survey responses"
+  on survey_responses for select using (
+    patient_id in (select id from patients where created_by = auth.uid())
+  );
+
+-- ============================================================
 -- Deleted patient retention (D019, 2026-08-11)
 --
 -- The UI keeps hard-delete (Hüseyin's explicit choice — no archive feature).
@@ -861,6 +900,7 @@ create table if not exists deleted_patients_archive (
   payments     jsonb       not null default '[]'::jsonb,
   attachments  jsonb       not null default '[]'::jsonb,
   transitions  jsonb       not null default '[]'::jsonb,
+  surveys      jsonb       not null default '[]'::jsonb,
   created_by   uuid,
   deleted_at   timestamptz not null default now()
 );
@@ -878,7 +918,7 @@ set search_path = public
 as $$
 begin
   insert into deleted_patients_archive
-    (patient_id, patient, notes, payments, attachments, transitions, created_by)
+    (patient_id, patient, notes, payments, attachments, transitions, surveys, created_by)
   values (
     old.id,
     to_jsonb(old),
@@ -886,6 +926,7 @@ begin
     coalesce((select jsonb_agg(to_jsonb(p)) from payments p where p.patient_id = old.id), '[]'::jsonb),
     coalesce((select jsonb_agg(to_jsonb(a)) from patient_attachments a where a.patient_id = old.id), '[]'::jsonb),
     coalesce((select jsonb_agg(to_jsonb(t)) from patient_state_transitions t where t.patient_id = old.id), '[]'::jsonb),
+    coalesce((select jsonb_agg(to_jsonb(s)) from survey_responses s where s.patient_id = old.id), '[]'::jsonb),
     old.created_by
   );
   return old;
