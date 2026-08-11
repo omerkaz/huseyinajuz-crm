@@ -6,6 +6,7 @@ import { PatientStatusBadge } from "@/components/patients/PatientStatusBadge";
 import { PatientFilters } from "@/components/patients/PatientFilters";
 import { getPatients } from "@/lib/patients";
 import { getPayments } from "@/lib/payments";
+import { getSurveyedPatientIds } from "@/lib/surveys";
 import type {
   LeadSource,
   LifecycleState,
@@ -77,6 +78,8 @@ const packageLabels: Record<PackageType, string> = {
 export default function PatientsPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [paymentStatusMap, setPaymentStatusMap] = useState<Map<string, PaymentStatus>>(new Map());
+  const [surveyedIds, setSurveyedIds] = useState<Set<string>>(new Set());
+  const [surveyError, setSurveyError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -104,9 +107,10 @@ export default function PatientsPage() {
     if (packageType) filters.packageType = packageType;
     if (source) filters.source = source;
 
-    const [result, paymentsResult] = await Promise.all([
+    const [result, paymentsResult, surveysResult] = await Promise.all([
       getPatients(filters),
       getPayments(),
+      getSurveyedPatientIds(),
     ]);
 
     if (result.error) {
@@ -123,6 +127,11 @@ export default function PatientsPage() {
       setPaymentStatusMap(computePaymentStatusMap(paymentsResult.data, result.data));
     }
 
+    // Survey indicators (SURV-03). A failure here must not read as "nobody has
+    // answered" — the badges are hidden and the reason is stated instead.
+    setSurveyedIds(surveysResult.error ? new Set() : surveysResult.data);
+    setSurveyError(surveysResult.error?.message ?? null);
+
     setLoading(false);
   }, [search, status, packageType, source]);
 
@@ -136,9 +145,16 @@ export default function PatientsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
-        <p className="reading text-[0.72rem] text-ink-secondary">
-          {String(patients.length).padStart(2, "0")} RECORDS
-        </p>
+        <div>
+          <p className="reading text-[0.72rem] text-ink-secondary">
+            {String(patients.length).padStart(2, "0")} RECORDS
+          </p>
+          {surveyError && (
+            <p className="mt-0.5 text-[0.7rem] text-ink-muted">
+              Survey indicators unavailable — {surveyError}
+            </p>
+          )}
+        </div>
         <Link to="/patients/new">
           <Button size="sm">
             <Plus className="h-4 w-4" />
@@ -229,6 +245,13 @@ export default function PatientsPage() {
                       </p>
                     )}
                   </div>
+
+                  {/* Survey indicator (SURV-03) */}
+                  {surveyedIds.has(patient.id) && (
+                    <span title="Qualification survey completed">
+                      <Badge variant="muted">Survey</Badge>
+                    </span>
+                  )}
 
                   {/* Status chip */}
                   <PatientStatusBadge status={patient.lifecycle_state} />

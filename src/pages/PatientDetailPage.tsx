@@ -9,6 +9,7 @@ import { StateTransitionButton } from "@/components/patients/StateTransitionButt
 import { NotesList } from "@/components/patients/NotesList";
 import { PaymentsList } from "@/components/patients/PaymentsList";
 import { FileUpload } from "@/components/patients/FileUpload";
+import { SurveyAnswersCard } from "@/components/patients/SurveyAnswersCard";
 import { deletePatient, getPatient } from "@/lib/patients";
 import { getPatientPaymentSummary } from "@/lib/payments";
 import { COUNTRY_CODES } from "@/lib/phone";
@@ -269,6 +270,9 @@ export default function PatientDetailPage() {
           onTransition={() => void fetchPatient()}
         />
       </Card>
+
+      {/* Qualification survey (SURV-03) */}
+      <SurveyAnswersCard patientId={patient.id} />
 
       {/* Notes */}
       <Card hover={false}>

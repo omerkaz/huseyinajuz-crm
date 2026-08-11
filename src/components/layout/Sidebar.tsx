@@ -5,6 +5,7 @@ import {
   Kanban,
   Funnel,
   CreditCard,
+  ClipboardList,
   Settings,
   Menu,
   X,
@@ -17,6 +18,7 @@ const navItems = [
   { to: "/pipeline", label: "Pipeline", icon: Kanban },
   { to: "/funnel", label: "Funnel", icon: Funnel },
   { to: "/payments", label: "Payments", icon: CreditCard },
+  { to: "/surveys", label: "Surveys", icon: ClipboardList },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
