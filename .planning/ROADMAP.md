@@ -295,8 +295,10 @@ acquisition, untouched) + CRM Lead Sync. Sequences empty; no nurture overlap.
 - **SURV-02** — `/survey` static page in landing repo (EN; question set
   APPROVED by Hüseyin 2026-08-11: 1 name+surname mandatory, 2 duration,
   3 area, 4 recent blood test, 5 gender, 6 prior treatments, 7 readiness,
-  8 email mandatory LAST, + optional WhatsApp number; age-range question
-  pending one confirmation — dropped during his edit, possibly accidental) + survey-submit Edge Function: validates token, whitelists
+  8 email mandatory LAST, + optional WhatsApp number; age-range KEPT —
+  confirmed 2026-08-11, inserted before gender → final set is 9 questions:
+  name / duration / area / blood test / age range / gender / treatments /
+  readiness / email+WhatsApp) + survey-submit Edge Function: validates token, whitelists
   answer keys/values server-side, upserts `survey_responses`
   (`UNIQUE(patient_id)`, `survey_version`), atomic email backfill
   (`UPDATE … WHERE email IS NULL`), skeleton patient on webhook race
