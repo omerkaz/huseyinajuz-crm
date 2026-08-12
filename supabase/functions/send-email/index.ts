@@ -5,6 +5,16 @@
 // v4 (Phase 16 / MAIL-05): this is the single branding chokepoint. Callers send
 // a bare content fragment; the branded shell, footer, and plain-text fallback
 // are applied here — see ./emailTemplate.ts for the design tokens.
+//
+// v5 (Phase 21 / MAIL-06) — two changes, both scoped to the browser (JWT) path:
+//   1. Recipient authorization: `to` must be the email of a patient owned by
+//      the JWT user. Previously any authenticated session could mail any
+//      address through the practice's verified sending domain.
+//   2. The `manual` feature key: a human pressing Send in /email is the
+//      consent, so it bypasses the practitioner_settings toggle gate (those
+//      toggles govern automation) and is recorded in email_send_log.
+// The WEBHOOK_SECRET path (pg_cron, manychat-webhook) is unchanged, and it may
+// NOT use `manual` — automation must always stay behind its toggle.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildPlainText, wrapEmailHtml } from "./emailTemplate.ts";
@@ -21,6 +31,9 @@ const VALID_FEATURES = [
 ] as const;
 
 type FeatureKey = (typeof VALID_FEATURES)[number];
+
+/** Practitioner-initiated send. JWT path only, no toggle, always logged. */
+const MANUAL_FEATURE = "manual";
 
 // ── CORS headers ──
 const corsHeaders = {
@@ -49,6 +62,20 @@ function jsonResponse(body: Record<string, unknown>, status: number): Response {
 /** Basic email format check */
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+/** Normalise exactly as the DB's unique index does: lower(btrim(email)). */
+function normaliseEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+/**
+ * Escape LIKE wildcards so an address containing `_` or `%` (both legal in the
+ * local part) is matched literally. Postgres LIKE/ILIKE uses `\` as its default
+ * escape character, so no ESCAPE clause is needed.
+ */
+function escapeLikePattern(value: string): string {
+  return value.replace(/[\\%_]/g, (ch) => `\\${ch}`);
 }
 
 // ── Main handler ──
@@ -108,17 +135,28 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: "Unauthorized" }, 401);
   }
 
-  if (providedToken !== webhookSecret) {
+  // Which caller are we serving? The two paths diverge on feature keys,
+  // recipient authorization and logging, so the mode is carried explicitly
+  // rather than re-derived later.
+  let authMode: "secret" | "jwt";
+  let jwtUserId: string | null = null;
+
+  if (providedToken === webhookSecret) {
+    authMode = "secret";
+  } else {
     // Not the shared secret — try validating as a Supabase session JWT
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
     const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(providedToken);
     if (userError || !userData?.user) {
+      // 401 = we do not know who you are. Distinct from the 403 below, which
+      // means we know you and you may not mail this person.
       console.warn("[send-email] Auth failed: invalid JWT");
       return jsonResponse({ error: "Unauthorized" }, 401);
     }
-    // JWT is valid — authenticated as a session user
+    authMode = "jwt";
+    jwtUserId = userData.user.id;
   }
 
   // ── Parse body ──
@@ -153,47 +191,104 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── Validate feature key against whitelist ──
-  if (!(VALID_FEATURES as readonly string[]).includes(feature)) {
+  // `manual` is a browser-only key: a pg_cron or webhook caller must never be
+  // able to route around the automation toggles by claiming a human sent it.
+  const isManual = feature === MANUAL_FEATURE;
+
+  if (isManual && authMode !== "jwt") {
+    console.warn("[send-email] Rejected: manual feature requested on the shared-secret path");
+    return jsonResponse(
+      { error: `Feature "${MANUAL_FEATURE}" requires an authenticated session.` },
+      400,
+    );
+  }
+
+  if (!isManual && !(VALID_FEATURES as readonly string[]).includes(feature)) {
     return jsonResponse(
       { error: `Invalid feature key. Must be one of: ${VALID_FEATURES.join(", ")}` },
       400,
     );
   }
 
-  const featureKey = feature as FeatureKey;
-  const settingsColumn = `${featureKey}_enabled` as keyof Record<string, boolean>;
+  const recipient = to.trim();
 
-  // ── Check practitioner_settings toggle ──
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
+  // ── Recipient authorization (JWT path only) ──
+  // The browser may only mail people it owns records for. Ownership is checked
+  // in SQL against the JWT's user id — never inferred from the request body,
+  // which is why the client sends no patient id at all.
+  let recipientPatientId: string | null = null;
+
+  if (authMode === "jwt") {
+    const normalised = normaliseEmail(recipient);
+    const { data: owned, error: ownedError } = await supabase
+      .from("patients")
+      .select("id, email")
+      .eq("created_by", jwtUserId)
+      .ilike("email", escapeLikePattern(normalised))
+      .limit(5);
+
+    if (ownedError) {
+      console.error("[send-email] Recipient lookup failed:", ownedError.message);
+      return jsonResponse({ error: "Failed to verify recipient" }, 500);
+    }
+
+    // ILIKE handles case; this re-check handles stray whitespace and the
+    // wildcard-broadening that an escaped pattern cannot fully rule out.
+    const match = (owned ?? []).find(
+      (row: { email: string | null }) => normaliseEmail(row.email ?? "") === normalised,
+    ) as { id: string } | undefined;
+
+    if (!match) {
+      console.warn(`[send-email] Rejected: recipient is not a patient of user ${jwtUserId}`);
+      return jsonResponse(
+        { error: "Recipient is not one of your patients." },
+        403,
+      );
+    }
+
+    recipientPatientId = match.id;
+  }
+
+  const settingsColumn = isManual
+    ? null
+    : (`${feature as FeatureKey}_enabled` as keyof Record<string, boolean>);
+
   try {
-    let settingsQuery = supabase.from("practitioner_settings").select("*");
-    if (practitionerUserId) {
-      settingsQuery = settingsQuery.eq("user_id", practitionerUserId);
-    }
-    const { data: settings, error: settingsError } = await settingsQuery
-      .limit(1)
-      .maybeSingle();
+    // ── Check practitioner_settings toggle ──
+    // Skipped entirely for manual sends: the toggles gate automation, and a
+    // practitioner pressing Send has already given consent. This also keeps
+    // manual sends working when the settings row is missing.
+    if (settingsColumn) {
+      let settingsQuery = supabase.from("practitioner_settings").select("*");
+      if (practitionerUserId) {
+        settingsQuery = settingsQuery.eq("user_id", practitionerUserId);
+      }
+      const { data: settings, error: settingsError } = await settingsQuery
+        .limit(1)
+        .maybeSingle();
 
-    if (settingsError) {
-      console.error("[send-email] Failed to read practitioner_settings:", settingsError.message);
-      return jsonResponse({ error: "Failed to read settings" }, 500);
-    }
+      if (settingsError) {
+        console.error("[send-email] Failed to read practitioner_settings:", settingsError.message);
+        return jsonResponse({ error: "Failed to read settings" }, 500);
+      }
 
-    // Row missing or feature disabled → skip
-    const featureEnabled = settings ? (settings[settingsColumn] as boolean | undefined) : undefined;
-    if (!settings || !featureEnabled) {
-      console.log(`[send-email] feature=${featureKey} enabled=false skipped`);
-      return jsonResponse({ skipped: true, reason: "feature disabled" }, 200);
+      // Row missing or feature disabled → skip
+      const featureEnabled = settings ? (settings[settingsColumn] as boolean | undefined) : undefined;
+      if (!settings || !featureEnabled) {
+        console.log(`[send-email] feature=${feature} enabled=false skipped`);
+        return jsonResponse({ skipped: true, reason: "feature disabled" }, 200);
+      }
     }
 
     // ── Send via Resend API ──
     const resendPayload: Record<string, unknown> = {
       from: "Hüseyin Ajuz <mrhus@huseyinacuz.com>",
       reply_to: "mrhus@huseyinacuz.com",
-      to: [to.trim()],
+      to: [recipient],
       subject: subject.trim(),
       html: wrapEmailHtml(html, { title: subject.trim() }),
       // Always send a text part: HTML-only mail scores worse with spam filters,
@@ -226,11 +321,40 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const resendData = await resendRes.json() as Record<string, unknown>;
+    let resendData: Record<string, unknown> = {};
+    try {
+      resendData = await resendRes.json() as Record<string, unknown>;
+    } catch {
+      // A 2xx with a non-JSON body still means Resend accepted the message;
+      // only the id is lost.
+    }
     const emailId = resendData.id ?? "unknown";
     console.log(`[send-email] Resend accepted id=${emailId}`);
 
-    return jsonResponse({ sent: true, email_id: emailId }, 200);
+    // ── Record manual sends ──
+    // The message is already gone by this point, so a failed insert must not
+    // turn into a "failed" response — that would invite a duplicate resend.
+    // It is reported as sent-but-unlogged instead.
+    let logged: boolean | undefined;
+    if (isManual && recipientPatientId) {
+      const { error: logError } = await supabase
+        .from("email_send_log")
+        .insert({ patient_id: recipientPatientId, feature: MANUAL_FEATURE });
+
+      logged = !logError;
+      if (logError) {
+        console.error(
+          `[send-email] Manual send logged=false patient=${recipientPatientId}: ${logError.message}`,
+        );
+      }
+    }
+
+    return jsonResponse(
+      logged === undefined
+        ? { sent: true, email_id: emailId }
+        : { sent: true, email_id: emailId, logged },
+      200,
+    );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("[send-email] Unexpected error:", message);

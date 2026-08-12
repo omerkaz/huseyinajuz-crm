@@ -211,6 +211,55 @@ export interface Payment {
 
 export type PaymentInsert = Omit<Payment, "id" | "created_at">;
 
+// ── Email Features (MAIL-06) ──
+
+/**
+ * Automation feature keys. Each one maps to a `<key>_enabled` column on
+ * practitioner_settings and to the send-email Edge Function's whitelist —
+ * the three lists must stay in step.
+ */
+export const EMAIL_FEATURES = [
+  "welcome_email",
+  "blood_test_reminder",
+  "week_6_checkin",
+  "end_review",
+  "lead_day3",
+  "lead_day7",
+  "lead_day12",
+] as const;
+
+export type EmailFeature = (typeof EMAIL_FEATURES)[number];
+
+/** Practitioner-initiated send: no toggle, browser (JWT) path only. */
+export const MANUAL_EMAIL_FEATURE = "manual";
+
+/** Every feature key that can appear in email_send_log. */
+export const LOGGED_EMAIL_FEATURES = [...EMAIL_FEATURES, MANUAL_EMAIL_FEATURE] as const;
+
+export type LoggedEmailFeature = (typeof LOGGED_EMAIL_FEATURES)[number];
+
+export const EMAIL_FEATURE_LABELS: Record<LoggedEmailFeature, string> = {
+  welcome_email: "Welcome Email",
+  blood_test_reminder: "Blood Test Reminder",
+  week_6_checkin: "Week 6 Check-in",
+  end_review: "End Review",
+  lead_day3: "Lead Follow-up Day 3",
+  lead_day7: "Lead Follow-up Day 7",
+  lead_day12: "Lead Follow-up Day 12",
+  manual: "Manual Send",
+};
+
+/** The practitioner_settings column that gates a feature. */
+export type EmailToggleKey = `${EmailFeature}_enabled`;
+
+export interface EmailSendLogEntry {
+  id: string;
+  patient_id: string;
+  /** Free text in the DB — unknown keys are rendered verbatim, never dropped. */
+  feature: string;
+  sent_at: string;
+}
+
 // ── Qualification Survey (SURV-02/03) ──
 
 /**
