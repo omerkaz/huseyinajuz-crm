@@ -73,8 +73,13 @@ Phase 20 (SURV-04) DONE 2026-08-11: webhook v8 returns survey_token;
 ManyChat CRM Lead Sync flow published with response mapping (field 14861107)
 + tokenized Instagram invite DM (verified server-side via getFlowData);
 3 duplicate flows renamed. Full ManyChat->survey chain live.
-Next code-ready work: v1.3 Phase 21 (MAIL-06 /email route); email elegance
-pass ride-along
+Phase 21 (MAIL-06) code complete 2026-08-12: /email route (send log viewer,
+manual template send, 7 toggles relocated from Settings), send-email v5
+deployed (recipient authorization + JWT-only 'manual' feature bypassing
+toggle gates). Auth matrix smoke-verified; UI click-through by Ömer pending.
+Known deferral: browser-triggered sends don't write log rows (Phase 22 item).
+Next code-ready work: v1.3 Phase 22 (drip — last phase); email elegance pass
+ride-along
 
 ## Phase Status
 

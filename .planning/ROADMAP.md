@@ -201,7 +201,7 @@ paragraphs — while staying deliverability-safe across major clients.
 | SURV-02 | 19 | Done (2026-08-11, live-verified) |
 | SURV-03 | 19 | Done (2026-08-11, live-verified) |
 | SURV-04 | 20 | Done (2026-08-11, published + verified) |
-| MAIL-06 | 21 | Pending |
+| MAIL-06 | 21 | Code done + v5 deployed (2026-08-12); UI click-through pending |
 
 ## Phase Numbering
 
