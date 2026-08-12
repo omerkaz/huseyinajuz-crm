@@ -6,6 +6,7 @@ import {
   Funnel,
   CreditCard,
   ClipboardList,
+  Mail,
   Settings,
   Menu,
   X,
@@ -19,6 +20,7 @@ const navItems = [
   { to: "/funnel", label: "Funnel", icon: Funnel },
   { to: "/payments", label: "Payments", icon: CreditCard },
   { to: "/surveys", label: "Surveys", icon: ClipboardList },
+  { to: "/email", label: "Email", icon: Mail },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
