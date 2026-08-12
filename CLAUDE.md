@@ -47,7 +47,11 @@ src/
 │   ├── phone.ts               # 30 country codes, validation, formatting
 │   ├── dashboardMetrics.ts    # computeMetrics() pure function + formatUSD
 │   ├── transitions.ts         # Paginated fetch of patient_state_transitions
-│   └── funnelMetrics.ts       # computeFunnel() pure function (conversion, cohorts)
+│   ├── funnelMetrics.ts       # computeFunnel() pure function (conversion, cohorts)
+│   ├── surveys.ts             # Survey response reads + answer label formatting
+│   ├── emailLog.ts            # email_send_log reads (capped window)
+│   ├── emailLogView.ts        # buildLogRows() pure join + feature labels
+│   └── emailTemplates.ts      # The 7 templates (pure, node:test covered)
 ├── context/
 │   └── auth.tsx               # AuthProvider + useAuth() hook, INITIAL_SESSION gate
 ├── routes/
@@ -68,7 +72,8 @@ src/
 │   ├── PipelinePage.tsx       # Kanban columns for 9 lifecycle stages
 │   ├── FunnelPage.tsx         # Conversion funnel, cohorts, drop-off analytics
 │   ├── PaymentsPage.tsx       # Filterable payment list
-│   └── SurveysPage.tsx        # Survey responses, newest first, source filter
+│   ├── SurveysPage.tsx        # Survey responses, newest first, source filter
+│   └── EmailPage.tsx          # Send log + manual send + automation toggles
 supabase/
 ├── schema.sql                 # Tables, RLS, indexes, trigger
 ├── migrations/                # Guarded, transactional DDL (applied by hand)
