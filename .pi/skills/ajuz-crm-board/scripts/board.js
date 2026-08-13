@@ -111,6 +111,17 @@ async function cmdRetag(args) {
   console.log(`retagged: ${titleOf(card)} [${keywords.join(", ") || "—"}]`);
 }
 
+async function cmdRename(args) {
+  const [query] = args._;
+  if (!query || !args.name) fail('usage: board.js rename <name-query> --name "New title"');
+  const card = await findCard(query);
+  const oldName = titleOf(card);
+  await api("PATCH", `/pages/${card.id}`, {
+    properties: { Name: { title: rt(args.name) } },
+  });
+  console.log(`renamed: ${oldName} → ${args.name}`);
+}
+
 async function cmdArchive(args) {
   const [query] = args._;
   if (!query) fail("usage: board.js archive <name-query>");
@@ -119,7 +130,7 @@ async function cmdArchive(args) {
   console.log(`archived: ${titleOf(card)} (recoverable from Notion Trash)`);
 }
 
-const commands = { list: cmdList, show: cmdShow, add: cmdAdd, move: cmdMove, append: cmdAppend, retag: cmdRetag, archive: cmdArchive };
+const commands = { list: cmdList, show: cmdShow, add: cmdAdd, move: cmdMove, append: cmdAppend, retag: cmdRetag, rename: cmdRename, archive: cmdArchive };
 
 const [cmd, ...rest] = process.argv.slice(2);
 if (!cmd || !commands[cmd]) {
@@ -131,6 +142,7 @@ if (!cmd || !commands[cmd]) {
   move <name-query> --status "Done"             Move a card to a column
   append <name-query> --body "text"             Append text to a card
   retag <name-query> --keywords "a,b"           Replace a card's keywords ("" clears)
+  rename <name-query> --name "New title"        Replace a card's title
   archive <name-query>                          Archive a card (reversible)
 
 Body text: one block per line — "## " heading, "- " bullet, "[ ] " to-do.
