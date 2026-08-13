@@ -139,13 +139,13 @@ pg_cron infrastructure (AUTO-04)
 
 ### Phase 16: Email Design System
 
-> **STATUS (2026-08-11):** send-email v4 deployed to live (branded shell,
-> table layout, dark mode, plain-text parity; tsc/test/lint green; headless
-> Chrome render verified). Remaining: real-inbox render checks (Gmail/Apple
-> Mail/Outlook/iOS dark) and SPF/DKIM spot-check. **Known gap: the current
-> shell is a functional baseline — an elegance pass (typography rhythm,
-> spacing, visual refinement toward the CRM's warm editorial feel) is still
-> wanted before Phase 22 drip templates adopt it.**
+> **STATUS (2026-08-12): CLOSED.** send-email v4+ branded shell live (table
+> layout, dark mode, plain-text parity; tsc/test/lint green; headless Chrome
+> render verified). Real-inbox check passed: Ömer confirmed receipt of both
+> test sends (welcome + blood test reminder) at omerkazfd@gmail.com.
+> **Known gap carried forward: the shell is a functional baseline — an
+> elegance pass (typography rhythm, spacing, warm editorial feel) runs as a
+> ride-along before Phase 22 drip templates adopt it.**
 
 **Goal:** Emails look professionally designed and on-brand — not bare
 paragraphs — while staying deliverability-safe across major clients.
@@ -189,7 +189,7 @@ paragraphs — while staying deliverability-safe across major clients.
 | MAIL-02 | 14 | Done |
 | MAIL-03 | 13 | Done |
 | MAIL-04 | 12 | Done |
-| MAIL-05 | 16 | Pending |
+| MAIL-05 | 16 | Done (2026-08-12, inbox-verified) |
 | DRIP-01 | 15 | Superseded by SURV-01 |
 | DRIP-02 | 22 | Pending |
 | DRIP-03 | 22 | Pending |

@@ -2,22 +2,23 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Deliverability & Landing Page Drip
-status: in_progress
-last_updated: "2026-08-10T00:00:00.000Z"
-last_activity: 2026-08-10
+status: complete
+last_updated: "2026-08-12T00:00:00.000Z"
+last_activity: 2026-08-12
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 5
   completed_plans: 5
-  percent: 80
+  percent: 100
 ---
 
 # Project State
 
-**Last updated:** 2026-08-10
-**Current milestone:** v1.2 Deliverability (in progress — Phase 16 remaining)
-**Next milestone:** v1.3 Lead Intake & Nurture (scoped 2026-08-10)
+**Last updated:** 2026-08-12
+**Current milestone:** v1.3 Lead Intake & Nurture (Phase 22 remaining; v1.2
+completed 2026-08-12 with the MAIL-05 close-out)
+**Next milestone:** v1.4 (unscoped — old v1.3 candidates)
 
 ## Current Position
 
@@ -80,6 +81,11 @@ toggle gates). Auth matrix smoke-verified; UI click-through by Ömer pending.
 Known deferral: browser-triggered sends don't write log rows (Phase 22 item).
 Next code-ready work: v1.3 Phase 22 (drip — last phase); email elegance pass
 ride-along
+MAIL-05 CLOSED 2026-08-12: Ömer confirmed receipt of both test emails
+(welcome + blood test reminder) at omerkazfd@gmail.com — Phase 16 done,
+v1.2 complete. Deep per-client render matrix (Outlook/iOS dark) not
+exhaustively checked; accepted at current volume. Email elegance pass
+kicked off same day (delegated agent, ride-along before Phase 22 templates).
 
 ## Phase Status
 
@@ -89,7 +95,7 @@ ride-along
 | 13 | Verified Sender Identity | ✅ Done (human-verified 2026-07-19) |
 | 14 | Reliable Reminders | ✅ Executed (migration applied to live DB) |
 | 15 | Landing Page Drip Sequence | ⏳ Pending (blocked on Hüseyin's input) |
-| 16 | Email Design System | 🔜 Unblocked (next-eligible) |
+| 16 | Email Design System | ✅ Done (MAIL-05 closed 2026-08-12) |
 | 17 | Package Price Management | ✅ Done (PRICE-01, 2026-07-19) |
 
 ## Verified Production State (2026-07-06)
