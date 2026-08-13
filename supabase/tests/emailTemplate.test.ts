@@ -15,6 +15,11 @@ import {
   WRAPPER_MARKER,
   appendTextFooter,
   buildPlainText,
+  derivePreheader,
+  emailButton,
+  emailCallout,
+  emailDivider,
+  emailHeading,
   escapeHtml,
   htmlToPlainText,
   wrapEmailHtml,
@@ -88,11 +93,83 @@ test("wrapEmailHtml stays spam-safe: no images, modest payload", () => {
   assert.ok(html.length < 12000, `shell stays small (was ${html.length} bytes)`);
 });
 
+test("wrapEmailHtml sets an editorial vertical rhythm", () => {
+  const html = wrapEmailHtml(FRAGMENT);
+
+  assert.ok(html.includes("font-size:16px;line-height:28px"), "body copy is 16/28");
+  assert.ok(html.includes(".content p { margin:0 0 18px 0; }"), "18px between paragraphs");
+  assert.ok(html.includes("padding:36px 44px 0 44px"), "44px side padding on desktop");
+  assert.ok(html.includes("padding-left:24px !important"), "24px side padding on phones");
+  assert.ok(html.includes("letter-spacing:2.2px"), "eyebrow is tracked out");
+  // The signature repeats the wordmark in the serif face: header + sign-off.
+  assert.equal(html.split(`font-family:${EMAIL_TOKENS.fontHeading}`).length - 1, 2);
+});
+
+test("wrapEmailHtml adds a hidden inbox preview line", () => {
+  const html = wrapEmailHtml(FRAGMENT);
+
+  assert.ok(html.includes("mso-hide:all"), "preheader hidden from Outlook");
+  assert.ok(html.includes("Please arrange your blood test.&#847;"), "preview text then filler");
+  assert.ok(
+    html.indexOf("mso-hide:all") < html.indexOf('class="wordmark'),
+    "preheader precedes the wordmark",
+  );
+
+  const explicit = wrapEmailHtml(FRAGMENT, { preheader: "Custom preview" });
+  assert.ok(explicit.includes("Custom preview&#847;"), "caller can override the preview");
+
+  const none = wrapEmailHtml(FRAGMENT, { preheader: "  " });
+  assert.ok(!none.includes("mso-hide:all"), "empty preheader omits the block entirely");
+});
+
+test("derivePreheader skips the greeting and clips on a word boundary", () => {
+  assert.equal(
+    derivePreheader("<p>Hi Ada,</p><p>A week has passed since you reached out.</p>"),
+    "A week has passed since you reached out.",
+  );
+  assert.equal(derivePreheader("<p>One line only.</p>"), "One line only.");
+
+  const long = derivePreheader(`<p>Dear Ada,</p><p>${"word ".repeat(60)}</p>`);
+  assert.ok(long.length <= 111, `clipped to the preview window (was ${long.length})`);
+  assert.ok(long.endsWith("…"), "ellipsis marks the clip");
+  assert.ok(!long.includes("  "), "no double spaces");
+});
+
+test("body primitives are inline-styled, escaped and dark-mode aware", () => {
+  const heading = emailHeading("What happens next");
+  assert.ok(heading.includes(EMAIL_TOKENS.fontHeading), "headings use the serif face");
+  assert.ok(heading.includes('class="h-sub t-ink"'), "dark-mode hook present");
+
+  const calm = emailCallout("<strong>Bring your results.</strong>");
+  assert.ok(calm.includes(EMAIL_TOKENS.teal), "calm callout is teal");
+  assert.ok(!calm.includes(EMAIL_TOKENS.coral), "calm callout never uses coral");
+
+  const urgent = emailCallout("Final call.", "urgent");
+  assert.ok(urgent.includes(EMAIL_TOKENS.coral), "urgent callout is coral");
+  assert.ok(urgent.includes("callout-urgent"), "urgent dark-mode hook present");
+
+  const button = emailButton("https://huseyinacuz.com/survey?t=1&x=2", 'Book "now"');
+  assert.ok(button.includes("t=1&amp;x=2"), "href is escaped");
+  assert.ok(button.includes("Book &quot;now&quot;"), "label is escaped");
+  assert.ok(!/<img/i.test(button), "CTA needs no image");
+
+  assert.ok(emailDivider().includes(EMAIL_TOKENS.hairline), "divider uses the hairline token");
+
+  for (const fragment of [heading, calm, urgent, button, emailDivider()]) {
+    assert.ok(wrapEmailHtml(fragment).includes(fragment), "primitive survives wrapping verbatim");
+  }
+});
+
 test("wrapEmailHtml is idempotent", () => {
   const once = wrapEmailHtml(FRAGMENT);
   const twice = wrapEmailHtml(once);
 
   assert.equal(twice, once, "re-wrapping branded HTML is a no-op");
+  // Older shell versions are still recognised, so a stored v1 render is safe.
+  assert.equal(
+    wrapEmailHtml("<!--ajuz-email-shell:v1--><p>Legacy</p>"),
+    "<!--ajuz-email-shell:v1--><p>Legacy</p>",
+  );
   assert.equal(once.split(WRAPPER_MARKER).length - 1, 1, "exactly one marker");
   assert.equal(once.split("<!DOCTYPE html>").length - 1, 1, "exactly one doctype");
 });
